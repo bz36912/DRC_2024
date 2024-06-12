@@ -1,0 +1,6 @@
+{
+    "port": "COM9",
+    "sketch": "driving_straight_MPU6050_v2_pro.ino",
+    "programmer": "arduino:avrisp",
+    "board": "arduino:avr:uno"
+}
