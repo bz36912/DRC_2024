@@ -18,22 +18,21 @@ void setup() {
   Serial.begin(BAUD_RATE);
   Serial.setTimeout(1000);
   Serial.println("starting program... Pls wait.");
-  Car car = Car();
-  unsigned long int prevTime = millis();
+  delay(200); // when the reset button is just pressed, it wobbles the gyroscope. So wait till wobble stops.
+  Car car = Car(); // includes the gyroscope and motor initialisation
   Serial.println("Ready!");
   
-  delay(500);
-  unsigned long int prevLEDTime = millis();
+  unsigned long int prevTime = millis(); // for cycling the motor control loop
+  // for the debugging LED
   bool LEDState = LOW;
   pinMode(LED, OUTPUT);
+  unsigned long int prevLEDTime = millis();
+
   
   while(1) {
     if (car.gyro.updateGyro() == CRITICAL_FAILURE) {
       car.motor.stopCar();
-      int curAngle = car.gyro.getAngle();
-      car.gyro.deinit();
-      delay(1000);
-      car.gyro.init((float)curAngle);
+      PRINT_VAR("MPU6050's I2C communication got critical error. ERROR", 1);
     }
     car.getCommand();
     if (!car.checkAndHandleDisconnect() and millis() - prevTime > FEEDBACK_TIME) {
@@ -60,17 +59,7 @@ bool Car::checkAndHandleDisconnect() {
    */
   
   if (millis() - this->lastConnectionTime > STOP_AFTER_DISCONNECT_FOR) {
-    if (millis() - this->lastConnectionTime > RESTART_UART_AFTER_DISCONNECT_FOR) {
-      Serial.println("restarting UART...");
-      Serial.end();
-      Serial.begin(BAUD_RATE);
-      Serial.println("restart is completed.");
-      this->lastConnectionTime = millis();
-      delay(1000);
-      return true;
-    }
-
-    Serial.println("stop car due to UART disconnect");
+    Serial.println("stop the car due to UART disconnect");
     this->motor.stopCar();
     this->state = PAUSED_STATE;
     delay(1000);
@@ -88,7 +77,7 @@ void Car::adjustMotion() {
   int targetVel = min(round(PROPORTIONAL_COEFFECIENT * (float)angleDiff), MAX_ANGULAR_VELOCITY); //caps the value to a max of 60
   targetVel = max(targetVel, -MAX_ANGULAR_VELOCITY);
   int velDiff = targetVel - angularVel;
-  //for debugging
+  //for debug prints
   this->angleDifference = angleDiff;
   this->velDifference = velDiff;
 
@@ -108,7 +97,7 @@ void Car::adjustMotion() {
 }
 
 void Car::driving(int angleDiff, int velDiff) {
-  if (angleDiff == 0){
+  if (angleDiff == 0){ // it already driving in the correct direction, so no adjustment is needed
     return;
   }
   
@@ -152,17 +141,14 @@ void Car::getCommand() {
       Serial.println("forward");
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "a") { //turn left
-      this->setState(ROTATE_STATE);
-      targetAngle = gyro.boundedAngle(targetAngle + 90);
+      this->setState(DRIVE_FORWARD_STATE);
+      targetAngle = gyro.boundedAngle(targetAngle + 30);
       PRINT_VAR("turn left, target", targetAngle);
     } else if (line == "d") { //turn right
-      this->setState(ROTATE_STATE);
-      targetAngle = gyro.boundedAngle(targetAngle - 90);
+      this->setState(DRIVE_FORWARD_STATE);
+      targetAngle = gyro.boundedAngle(targetAngle - 30);
       PRINT_VAR("turn right, target", targetAngle);
-    } else if (line == "q") { //stop or brake
-      Serial.println("stop");
-      this->setState(ROTATE_STATE);
-    } else if (line == "p") { //pause the program
+    } else if (line == "p") { //pause the program and stop the car
       Serial.println("paused");
       this->setState(PAUSED_STATE);
     } else if (line == "i") { //print information. When car is stationary, GyroX should approx. = 0.

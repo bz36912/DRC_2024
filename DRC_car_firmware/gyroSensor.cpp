@@ -20,35 +20,23 @@ String Vector3D::toString() {
 }
 
 Gyro::Gyro() {
-  init(0.0);
-  // Call this function if you need to get the IMU error values for your module
-  calculateError();
-  //reset gyroAngle
-  this->gyroAngle = Vector3D();
-}
-
-int Gyro::init(float initAngle) {
-  Serial.println("inside Gyro::init()");
-  delay(20);
+  // initialise I2C (using the Wire library) with MPU6050
+  Serial.println("inside Gyro::Gyro()");
   Wire.begin();                      // Initialize comunication
   Wire.beginTransmission(MPU);       // Start communication with MPU6050 // MPU=0x68
   Wire.write(0x6B);                  // Talk to the register 6B
   Wire.write(0x00);                  // Make reset - place a 0 into the 6B register
   uint8_t err = Wire.endTransmission(true);        // end the transmission
-  if (err == 4) {
-    return CRITICAL_FAILURE;
-  } else if (err) {
-    return FAILURE;
+  if (err) {
+    print_var_full("Gyro failed to start properly. Press the RESET button. ERROR", 1, "Gyro::Gyro()");
+  } else {
+    this->gyroAngle.AXIS = 0; // initialise value
+    this->curTime = micros();
+    // Call this function if you need to get the IMU error values for your module
+    calculateError();
+    //reset gyroAngle
+    this->gyroAngle = Vector3D();
   }
-
-  this->gyroAngle.AXIS = initAngle;
-  this->curTime = micros();
-  return SUCCESS;
-}
-
-int Gyro::deinit() {
-  Serial.println("inside Gyro::deinit()");
-  Wire.end();
 }
 
 void Gyro::calculateError() {
@@ -74,6 +62,8 @@ void Gyro::calculateError() {
  * Store the values into the class variable, angularVel
  * 
  * @return int 0 for success, negative values for failure/error
+ * -1 (FAILURE) means the function ignore the new reading to clear the error
+ * -2 (CRITICAL_FAILURE) means function canNOT fix the error, so the car needs to reset.
  */
 int Gyro::readAngularVel() {
   Wire.beginTransmission(MPU);
@@ -120,7 +110,7 @@ bool Gyro::isInfOrNan(float value, String msg) {
     PRINT_VAR("found inf in", msg);
     return true;
   }
-
+  
   return false;
 }
 
@@ -147,14 +137,20 @@ int Gyro::updateGyro() { //has to be called frequently
   return SUCCESS;
 }
 
+/**
+ * @brief keep/normalise the angle values between -180 and 180 degrees. 
+ * So 181 becomes 181 - 360 = -179.
+ * The makes comparison easier, avoiding mistaking 0 and 360 degrees as different orientations.
+ * 
+ * @param angle the input angle value
+ * @return int the normalised angle value
+ */
 int Gyro::boundedAngle(int angle) {
   while (angle > 180) {
     angle -= 360;
-//    print_var_full("reduce angle by 360 degrees", angle, "Gyro::boundedAngle");
   }
   while (angle < -180) {
     angle += 360;
-//    print_var_full("increase angle by 360 degrees", angle, "Gyro::boundedAngle");
   }
   return angle;
 }
@@ -163,7 +159,7 @@ int Gyro::getAngle() {
   if (isInfOrNan(this->gyroAngle.AXIS, "angle")) {
     print_var_full("the angle value is wrong:", this->gyroAngle.AXIS, "Gyro::getAngle");
   }
-  return this->boundedAngle(round(this->gyroAngle.AXIS)); //a number from 0 to 360
+  return this->boundedAngle(round(this->gyroAngle.AXIS)); //a number from -180 to 180
 }
 
 int Gyro::getAngularVel() {

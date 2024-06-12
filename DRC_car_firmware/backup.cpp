@@ -198,14 +198,14 @@
 //   PRINT_VAR("targetAngle", this->targetAngle);
 // }
 
-#if defined(WIRE_HAS_TIMEOUT) // most Arduino IDE version should have timeout for I2C communications
-Wire.setWireTimeout(1000, true);
-#else // unless the IDE is very old. Note, without timeout, some Wire library functions can block forever, freezing the program
-print_var_full("Your version of Arduino IDE does not seem to have timeout for I2C", -1, "Gyro::Gyro");
-#endif
-
-#if defined(WIRE_HAS_END)
-print_var_full("Your version of Arduino IDE has wire.end()", -1, "Gyro::Gyro");
-#else
-print_var_full("Your version of Arduino IDE does NOT have wire.end()", -1, "Gyro::Gyro");
-#endif
+//#if defined(WIRE_HAS_TIMEOUT) // most Arduino IDE version should have timeout for I2C communications
+//Wire.setWireTimeout(1000, true);
+//#else // unless the IDE is very old. Note, without timeout, some Wire library functions can block forever, freezing the program
+//print_var_full("Your version of Arduino IDE does not seem to have timeout for I2C", -1, "Gyro::Gyro");
+//#endif
+//
+//#if defined(WIRE_HAS_END)
+//print_var_full("Your version of Arduino IDE has wire.end()", -1, "Gyro::Gyro");
+//#else
+//print_var_full("Your version of Arduino IDE does NOT have wire.end()", -1, "Gyro::Gyro");
+//#endif

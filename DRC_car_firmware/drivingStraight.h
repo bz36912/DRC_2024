@@ -6,7 +6,7 @@
 #include "motorControl.h"
 
 //pinout
-#define LED 13
+#define LED 13 // blinking LED to indicate the program is running normally (e.g. no memory or hardware fault)
 
 #define BAUD_RATE 115200 //for UART serial communication
 
@@ -14,6 +14,13 @@
 #define ROTATE_STATE 0
 #define DRIVE_FORWARD_STATE 1
 #define PAUSED_STATE 2
+
+/**
+ * @brief in degrees, turning angle above which the car will go from DRIVE_FORWARD_STATE into 
+ * ROTATE_STATE, which spins the car about its axis. Below which the car will steer in 
+ * a gentle turn like a real-life car on the road, instead of spinning about it central axis.
+ */
+#define MAX_DRIVING_ANGLE 60
 
 //proportional control
 #define PROPORTIONAL_COEFFECIENT 1.0

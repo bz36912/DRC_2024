@@ -39,8 +39,6 @@ class Gyro {
     int Gyro::boundedAngle(int angle);
     int Gyro::getAngularVel();
     void Gyro::printInfo();
-    int Gyro::init(float initAngle);
-    int Gyro::deinit();
 };
 
 #endif
