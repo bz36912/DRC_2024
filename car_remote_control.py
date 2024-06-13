@@ -4,7 +4,7 @@ import threading
 import time
 
 def uart_init() -> serial.Serial:
-    port = "COM10"
+    port = "/dev/tty.REMOTE_CTRL"
     baud = 115200
     ser = serial.Serial(port, baud, timeout=0.1)
     print("Connected to Arduino port: " + port)
