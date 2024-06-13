@@ -74,16 +74,21 @@ if __name__ == "__main__":
     cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
     init_camera_feed(cap)
 
-    while True:
+    # while True:
+    for i in range(1):
         # get a frame from the video feed
         ret, frame = cap.read()
+        frame = cv.imread("./image.png")
         frame = cv.flip(frame, 1)
 
         blueMask, yellowMask, purpleMask = colour_mask(frame)
         blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
         cv.imshow('frame with contour', frame)
-        if cv.waitKey(1) == ord('q'): # press q to close the window and program
-            break
 
-    cap.release()
-    cv.destroyAllWindows()
+        c = cv.waitKey(0)
+
+    #     if cv.waitKey(1) == ord('q'): # press q to close the window and program
+    #         break
+
+    # cap.release()
+    # cv.destroyAllWindows()
