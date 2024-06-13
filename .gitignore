@@ -1,3 +1,4 @@
 *.DS_Store
 documentations/~*.docx
 documentations/~*.pptx
+*.py
