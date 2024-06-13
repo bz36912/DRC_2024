@@ -7,3 +7,4 @@ When the car is ready, it will print "Ready!" to the serial/UART terminal.
 
 # To Do
 Need to clarify the difference between driving and rotate
+Format and bounds of / _change in angle_ _max PWM value to either motor_

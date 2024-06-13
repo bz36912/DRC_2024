@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <limits.h>
 #include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define SUCCESS 0
 #define FAILURE -1

@@ -38,12 +38,14 @@ class Car {
     int targetAngle;
     int angleDifference;
     int velDifference;
+    int maxPWM;
     unsigned long lastConnectionTime;
-    void Car::driving(int deltaAngle, int velDiff);
-    void Car::rotate(int deltaAngle, int velDiff);
+    void Car::driving(int angleDiff, int velDiff, int maxPWM);
+    void Car::rotate(int angleDiff, int velDiff);
     void Car::setState(int newState);
     String Car::state_string(int state);
     String Car::state_string_helper(int state);
+    void Car::parse_cmd_string(String cmdStr);
 
   public:
     void Car::adjustMotion();

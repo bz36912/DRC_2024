@@ -12,6 +12,7 @@ Car::Car() {
   this->state = PAUSED_STATE;
   this->targetAngle = 0;
   this->lastConnectionTime = millis();
+  this->maxPWM = MAX_SPEED;
 }
 
 void setup() {
@@ -86,7 +87,7 @@ void Car::adjustMotion() {
     this->rotate(angleDiff, velDiff);
     break;
     case DRIVE_FORWARD_STATE:
-    this->driving(angleDiff, velDiff);
+    this->driving(angleDiff, velDiff, this->maxPWM);
     break;
     case PAUSED_STATE:
     this->motor.stopCar(); //remain stationary
@@ -96,15 +97,25 @@ void Car::adjustMotion() {
   }
 }
 
-void Car::driving(int angleDiff, int velDiff) {
+void Car::driving(int angleDiff, int velDiff, int maxPWM) {
+  this->maxPWM = maxPWM;
   if (angleDiff == 0){ // it already driving in the correct direction, so no adjustment is needed
     return;
   }
-  
-  if (velDiff != 0){ //so the speed needs to be adjusted
-    int increment = (int)(abs(velDiff) / 5 + 1);
-    this->motor.incrementSpeed(velDiff > 0 ? -increment : increment, LEFT);
-    //if velDiff > 0, turn left by letting right motor overtake left motor. Thus, reduce left motor speed.
+
+  int increment = abs(velDiff);
+  if (velDiff > 0) { // it needs to turn left faster or right slower
+    int roomToIncrease = maxPWM - this->motor.getSpeed(RIGHT);
+    this->motor.incrementSpeed(min(increment, roomToIncrease), RIGHT);
+    if (increment > roomToIncrease) { // if there is left over
+      this->motor.incrementSpeed(-(increment - roomToIncrease), LEFT);
+    }
+  } else {
+    int roomToIncrease = maxPWM - this->motor.getSpeed(LEFT);
+    this->motor.incrementSpeed(min(increment, roomToIncrease), LEFT);
+    if (increment > roomToIncrease) { // if there is left over
+      this->motor.incrementSpeed(-(increment - roomToIncrease), RIGHT);
+    }
   }
 }
 
@@ -129,6 +140,19 @@ void Car::rotate(int angleDiff, int velDiff) {
   this->motor.setSpeedTo(this->motor.getSpeed(LEFT), RIGHT); // in rotate mode, left and right motor have the same speed
 }
 
+void Car::parse_cmd_string(String cmdStr) {
+  char* str = cmdStr.c_str();
+  char* token = strtok(str, " ");
+  char* changeInDir = strtok(NULL, " ");
+  char* maxPWM = strtok(NULL, " ");
+  if (changeInDir != NULL) {
+    this->targetAngle = gyro.boundedAngle(this->targetAngle + atoi(changeInDir));
+  }
+  if (maxPWM != NULL) {
+    this->maxPWM = atoi(maxPWM);
+  }
+}
+
 void Car::getCommand() {
   // Print the values on the serial monitor
   if(Serial.available()){
@@ -137,17 +161,19 @@ void Car::getCommand() {
     if (line == "#") {
       this->lastConnectionTime = millis();
       Serial.print("#\n");
+    } else if (line.charAt(0) == '/') {
+      this->parse_cmd_string(line);
     } else if (line == "w") { //drive forward
       Serial.println("forward");
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "a") { //turn left
       this->setState(DRIVE_FORWARD_STATE);
-      targetAngle = gyro.boundedAngle(targetAngle + 30);
-      PRINT_VAR("turn left, target", targetAngle);
+      this->targetAngle = gyro.boundedAngle(this->targetAngle + 30);
+      PRINT_VAR("turn left, target", this->targetAngle);
     } else if (line == "d") { //turn right
       this->setState(DRIVE_FORWARD_STATE);
-      targetAngle = gyro.boundedAngle(targetAngle - 30);
-      PRINT_VAR("turn right, target", targetAngle);
+      this->targetAngle = gyro.boundedAngle(this->targetAngle - 30);
+      PRINT_VAR("turn right, target", this->targetAngle);
     } else if (line == "p") { //pause the program and stop the car
       Serial.println("paused");
       this->setState(PAUSED_STATE);
