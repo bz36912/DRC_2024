@@ -16,10 +16,10 @@ def send_key_command_thread(ser:serial.Serial):
     lastKeyPressTime = 0
     while True:
         key = keyboard.read_key()
-        if key == "e":
+        if key == "q": # quit the program
             print("key e is pressed: program ended")
             exit()
-        elif key != oldKey or time.time() - lastKeyPressTime > 1:
+        elif key != oldKey or time.time() - lastKeyPressTime > 0.2:
             oldKey = key
             lastKeyPressTime = time.time()
             key_in_bytes = bytes(key + "\n", 'utf-8')
