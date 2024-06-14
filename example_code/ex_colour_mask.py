@@ -71,24 +71,27 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
     return blueContour, yellowContour, purpleContour
 
 if __name__ == "__main__":
-    cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
+    # cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
+    # cap = cv.VideoCapture('what_track_n_obstacles_look_like.mp4')
+    cap = cv.VideoCapture('2023_video_2.mp4')
+
     init_camera_feed(cap)
 
-    # while True:
-    for i in range(1):
+    while True:
+    # for i in range(1):
         # get a frame from the video feed
         ret, frame = cap.read()
-        frame = cv.imread("./image.png")
+        # frame = cv.imread("./image.png")
         frame = cv.flip(frame, 1)
 
         blueMask, yellowMask, purpleMask = colour_mask(frame)
         blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
         cv.imshow('frame with contour', frame)
 
-        c = cv.waitKey(0)
+        # c = cv.waitKey(0) # blocking waiting
 
-    #     if cv.waitKey(1) == ord('q'): # press q to close the window and program
-    #         break
+        if cv.waitKey(1) == ord('q'): # press q to close the window and program. Non-blocking wait.
+            break
 
-    # cap.release()
-    # cv.destroyAllWindows()
+    cap.release()
+    cv.destroyAllWindows()
