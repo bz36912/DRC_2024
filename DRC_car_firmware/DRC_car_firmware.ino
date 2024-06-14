@@ -142,6 +142,7 @@ void Car::rotate(int angleDiff, int velDiff) {
 
 void Car::parse_cmd_string(String cmdStr) {
   char* str = cmdStr.c_str();
+  // the str is the format of "/ <change in direction> <maxPWM/speed>"
   char* token = strtok(str, " ");
   char* changeInDir = strtok(NULL, " ");
   char* maxPWM = strtok(NULL, " ");
@@ -160,13 +161,20 @@ void Car::getCommand() {
     Serial.println(line);
     if (line == "#") {
       this->lastConnectionTime = millis();
-      Serial.print("#\n");
-    } else if (line.charAt(0) == '/') {
+      Serial.print("#\n"); // echo back to tell the laptop that connection is still active
+    } else if (line.charAt(0) == '/') { // setting direction and speed to set values
       this->parse_cmd_string(line);
-    } else if (line == "w") { //drive forward
-      Serial.println("forward");
+      PRINT_VAR("cmd, new maxPWM", this->maxPWM);
+      PRINT_VAR("cmd, targetAngle", this->targetAngle);
+    } else if (line == "w") { // accelerate
+      this->maxPWM = min(MAX_SPEED, this->maxPWM + 20);
+      PRINT_VAR("ACcelerate, new maxPWM", this->maxPWM);
       this->setState(DRIVE_FORWARD_STATE);
-    } else if (line == "a") { //turn left
+    } else if (line == "s") { // decelerate
+      this->maxPWM = max(MIN_SPEED, this->maxPWM - 20);
+      PRINT_VAR("DEcelerate, new maxPWM", this->maxPWM);
+      this->setState(DRIVE_FORWARD_STATE);
+    } else if (line == "a") { // turn left
       this->setState(DRIVE_FORWARD_STATE);
       this->targetAngle = gyro.boundedAngle(this->targetAngle + 30);
       PRINT_VAR("turn left, target", this->targetAngle);
@@ -174,6 +182,14 @@ void Car::getCommand() {
       this->setState(DRIVE_FORWARD_STATE);
       this->targetAngle = gyro.boundedAngle(this->targetAngle - 30);
       PRINT_VAR("turn right, target", this->targetAngle);
+    } else if (line == "e") { //rotate left by 45 degrees
+      this->setState(ROTATE_STATE);
+      this->targetAngle = gyro.boundedAngle(this->targetAngle + 45);
+      PRINT_VAR("rotate left, target", this->targetAngle);
+    } else if (line == "r") { //rotate right by 45 degrees
+      this->setState(ROTATE_STATE);
+      this->targetAngle = gyro.boundedAngle(this->targetAngle - 45);
+      PRINT_VAR("rotate right, target", this->targetAngle);
     } else if (line == "p") { //pause the program and stop the car
       Serial.println("paused");
       this->setState(PAUSED_STATE);
@@ -192,8 +208,8 @@ void Car::setState(int newState) {
     this->motor.setSpeedTo(EQUILIBRIUM_SPEED, LEFT);
     break;
     case ROTATE_STATE:
-    this->motor.setSpeedTo(MIN_SPEED, RIGHT);
-    this->motor.setSpeedTo(MIN_SPEED, LEFT);
+    this->motor.setSpeedTo(MIN_MOVING_SPEED, RIGHT);
+    this->motor.setSpeedTo(MIN_MOVING_SPEED, LEFT);
     break;
     default:
     //do nothing
@@ -206,11 +222,13 @@ void Car::setState(int newState) {
 void Car::printInfo() {
   print_class_name("CAR");
   PRINT_VAR("state", this->state_string(this->state));
+  PRINT_VAR("maxPWM", this->maxPWM);
   PRINT_VAR("targetAngle", this->targetAngle);
   PRINT_VAR("angleDifference", this->angleDifference);
   PRINT_VAR("velDifference", this->velDifference);
-
+  delay(5); // prevent buffer overflow
   this->motor.printInfo();
+  delay(5); // prevent buffer overflow
   this->gyro.printInfo();
 }
 
