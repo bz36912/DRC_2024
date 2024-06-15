@@ -22,27 +22,26 @@ def perspective_tansform(oldX, oldY):
     Y = 1
     C = 2
     transformed = np.matmul(newM, P)
-    transformedX = transformed[X] / transformed[C]
-    transformedY = transformed[Y] / transformed[C]
+    transformedXY:np.array = transformed[[X, Y]] / transformed[C]
 
-    return transformedX, transformedY
+    return transformedXY.transpose()
 
 if __name__ == "__main__":
-    oldX = np.array([100,2,3,4,5,6])
-    oldY = np.array([150,4,6,8,10,12])
-    # in the comp the oldX and oldY will come from Jack Lord's colour mask step
-    # He will give you THREE sets of oldX and oldY: yellow for one side of the track, blue the other side
+    oldXY = np.array([[100, 150], [2, 4], [3, 6], [4, 8], [5, 10], [6, 12]])
+    oldX = oldXY[::, 0]
+    oldY = oldXY[::, 1]
+    # in the comp the oldXY will come from Jack Lord's colour mask step
+    # He will give you THREE sets of oldXY: yellow for one side of the track, blue the other side
     # and purple for the obstacle
-    transformedX, transformedY = perspective_tansform(oldX, oldY)
+    transformedXY = perspective_tansform(oldX, oldY)
     # the path planning will be based on transformedX, transformedY locations of yellow, blue and purple
 
     # testing the transform
-    print("x: ", transformedX)
-    print("y: ", transformedY)
+    print("xy: ", transformedXY)
     # graphing the points
     fig, ax = plt.subplots()
-    ax.plot(oldX * 10, oldY * 10, "*b") 
-    # the * 10 is adjust the scale, so the two plot can be compared on the same graph. 
+    ax.plot(oldX * 10, oldY * 10, "*b")
+    # the * 10 is to adjust the scale, so the two plot can be compared on the same graph. 
     # It is JUST for visualisation. We want oldX and oldY, not the 10X version of them.
-    ax.plot(transformedX, transformedY, "*g")
+    ax.plot(transformedXY[::, 0], transformedXY[::, 1], "*g")
     plt.show()
