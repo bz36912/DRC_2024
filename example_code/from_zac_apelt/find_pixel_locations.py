@@ -6,9 +6,9 @@ def mouse_click(event, x, y, flags, param):
         print("Clicked at (x={}, y={})".format(x, y))
 
 # Load the image
-image = cv2.imread('[image location]')
+image = cv2.imread("./IMG_20240616_144315.jpg")
 # rotate image 180 degrees
-image = cv2.rotate(image, cv2.ROTATE_180)
+image = cv2.resize(image,(0,0),fx=0.35,fy=0.35)
 # Check if the image was loaded successfully
 if image is None:
     print("Error: Could not load image.")
