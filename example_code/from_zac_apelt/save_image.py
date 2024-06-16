@@ -1,7 +1,7 @@
 import cv2
 
 # Open the default camera (index 0)
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # Check if the camera opened successfully
 if not cap.isOpened():
