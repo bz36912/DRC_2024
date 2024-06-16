@@ -17,7 +17,7 @@ PURPLE = (255, 51, 153)
 YELLOW = (0, 255, 255)
 
 # Grid size
-GRID_SIZE = 5
+GRID_SIZE = 10
 
 # the colour green will be marked by red outline. Purple by yellow outline and so on.
 # basically the complementary colour pairs on the colour wheel
@@ -37,13 +37,13 @@ def colour_mask(frame):
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     #lower bound and upper bound for blue
-    lowerBlue = np.array([100, 15, 80])
+    lowerBlue = np.array([100, 100, 80])
     upperBlue = np.array([130, 255, 255])
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([28, 40, 100])
-    upperYellow = np.array([42, 255, 255])
+    lowerYellow = np.array([20, 3, 100])
+    upperYellow = np.array([50, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
     #lower bound and upper bound for purple color
@@ -62,7 +62,7 @@ def check_grid_squares(frame, mask, colour):
             non_zero_count = cv.countNonZero(grid_square)
             
             # If a significant portion of the grid square contains the target color, draw a rectangle
-            if non_zero_count > (GRID_SIZE * GRID_SIZE) / 10:  # Adjust threshold as needed
+            if non_zero_count > (GRID_SIZE * GRID_SIZE) / 5:  # Adjust threshold as needed
                 cv.rectangle(frame, (x, y), (x + GRID_SIZE, y + GRID_SIZE), COMPLEMENTARY[colour], 2)
 
 def draw_contour(mask, colour, frame):
@@ -106,7 +106,7 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 
 if __name__ == "__main__":
     #cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
-    cap = cv.VideoCapture('example_code/2023_video_2.mp4')
+    cap = cv.VideoCapture('example_code/test_video_1.mp4')
     init_camera_feed(cap)
 
     while True:
