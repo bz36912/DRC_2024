@@ -37,16 +37,16 @@ def update_frame():
     imgtk = ImageTk.PhotoImage(image=img)
 
     # Update both video labels with the same frame
-    video_label1.imgtk = imgtk
     video_label1.configure(image=imgtk)
-    video_label2.imgtk = imgtk
+    video_label1.imgtk = imgtk
     video_label2.configure(image=imgtk)
+    video_label2.imgtk = imgtk
 
 
 def thread_entry():
     while True:
         update_frame()
-        time.sleep(0.01)   
+        # time.sleep(0.01)
 
 def close_threads():
     global thread
@@ -65,7 +65,7 @@ video_label2 = Label(root)
 video_label2.pack()
 
 # Open video capture
-address = "https://192.168.67.34:8080/video" # Replace with the video address
+address = "https://192.168.187.115:8080//video" # Replace with the video address
 video = cv2.VideoCapture(0)
 video.open(address)
 
