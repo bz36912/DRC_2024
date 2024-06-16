@@ -8,6 +8,7 @@ matrix = cv2.getPerspectiveTransform(pts1, pts2)
 image = cv2.imread("./example_code/from_zac_apelt/IMG_20240616_144315.jpg")
 image = cv2.resize(image,(0,0),fx=0.35,fy=0.35)
 
+# image shape: 857, 1142
 image = cv2.warpPerspective(image,matrix,(600,800))
 print(matrix)
 

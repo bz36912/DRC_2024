@@ -23,7 +23,7 @@ def init_camera_feed(cap):
         print("Failed to open webcam")
         exit()
 
-def colour_mask(frame):
+def colour_mask_2023(frame):
     #convert to hsv colorspace
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
@@ -39,6 +39,27 @@ def colour_mask(frame):
     
     #lower bound and upper bound for purple color
     lowerPurple = np.array([130, 50, 30])
+    upperPurple = np.array([170, 255, 255])
+    purpleMask = cv.inRange(hsv, lowerPurple, upperPurple)
+    
+    return blueMask, yellowMask, purpleMask
+
+def colour_mask(frame):
+    #convert to hsv colorspace
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    #lower bound and upper bound for blue
+    lowerBlue = np.array([70, 110, 200])
+    upperBlue = np.array([130, 255, 255])
+    blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
+
+    # lower bound and upper bound for yellow
+    lowerYellow = np.array([10, 3, 200])
+    upperYellow = np.array([60, 255, 255])
+    yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
+    
+    #lower bound and upper bound for purple color
+    lowerPurple = np.array([145, 50, 30])
     upperPurple = np.array([170, 255, 255])
     purpleMask = cv.inRange(hsv, lowerPurple, upperPurple)
     
@@ -72,8 +93,8 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 
 if __name__ == "__main__":
     # cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
-    # cap = cv.VideoCapture('what_track_n_obstacles_look_like.mp4')
-    cap = cv.VideoCapture('2023_video_2.mp4')
+    # cap = cv.VideoCapture('2023_video_1.mp4')
+    cap = cv.VideoCapture('car_view_test1.mp4')
 
     init_camera_feed(cap)
 
@@ -86,6 +107,9 @@ if __name__ == "__main__":
 
         blueMask, yellowMask, purpleMask = colour_mask(frame)
         blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
+        
+        height, width = frame.shape[:2]
+        frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)
 
         # c = cv.waitKey(0) # blocking waiting
