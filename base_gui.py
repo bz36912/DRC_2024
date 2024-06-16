@@ -7,4 +7,6 @@ The GUI shows:
     - annotated feed with contours/outlines from colour masking
     - after perspective transform and an arrow showing the direction (angle) and speed (length of arrow)
         the path planner directs the car to drive in
+
+this is some text
 """
