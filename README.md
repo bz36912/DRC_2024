@@ -8,4 +8,6 @@ Don't overwrite the example code. Write your code in the relevant files in the r
 ## To run the code in the example_code folder:
 you need to change the explorer/current directory to /example_code
 On vsCode, go File/Open Folder, then select example_code
+
 bingbong
+Hello World
