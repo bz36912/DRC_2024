@@ -9,9 +9,14 @@ def perspective_tansform(oldX, oldY):
     # Bryce JUST need to figure out the correct numbers in the M matrix,
     # which depends on the physical camera placement
     # Everything else is already good.
-    M = np.array([[-3.0985, -4.6553, 2776.3],
-                [2.71022, -4.4267, 1141.],
-                [0.0001966, 0.022109, 1.]])
+    # M = np.array([[-3.0985, -4.6553, 2776.3],
+    #             [2.71022, -4.4267, 1141.],
+    #             [0.0001966, 0.022109, 1.]])
+
+    # Bryce's first matrix
+    M = np.array([[-2.13117761e-04, -8.70680435e-06,  1.27400463e-01], 
+            [-4.39043323e-06,  1.77834625e-05, -1.89890525e-01], 
+            [-4.34531921e-06, -2.31760232e-03,  1.00000000e+00]])
     
     multiplier = np.array([[-1., -1., -1.],
                 [1., 1., 1.],

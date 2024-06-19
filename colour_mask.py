@@ -17,7 +17,7 @@ PURPLE = (255, 51, 153)
 YELLOW = (0, 255, 255)
 
 # Grid size
-GRID_SIZE = 10
+GRID_SIZE = 15
 
 # the colour green will be marked by red outline. Purple by yellow outline and so on.
 # basically the complementary colour pairs on the colour wheel
@@ -37,17 +37,17 @@ def colour_mask(frame):
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     #lower bound and upper bound for blue
-    lowerBlue = np.array([100, 100, 80])
+    lowerBlue = np.array([70, 110, 200])
     upperBlue = np.array([130, 255, 255])
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([20, 3, 100])
-    upperYellow = np.array([50, 255, 255])
+    lowerYellow = np.array([10, 3, 200])
+    upperYellow = np.array([60, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
     #lower bound and upper bound for purple color
-    lowerPurple = np.array([130, 50, 30])
+    lowerPurple = np.array([145, 50, 30])
     upperPurple = np.array([170, 255, 255])
     purpleMask = cv.inRange(hsv, lowerPurple, upperPurple)
     
@@ -62,7 +62,7 @@ def check_grid_squares(frame, mask, colour):
             non_zero_count = cv.countNonZero(grid_square)
             
             # If a significant portion of the grid square contains the target color, draw a rectangle
-            if non_zero_count > (GRID_SIZE * GRID_SIZE) / 5:  # Adjust threshold as needed
+            if non_zero_count > (GRID_SIZE * GRID_SIZE) / 6:  # Adjust threshold as needed
                 cv.rectangle(frame, (x, y), (x + GRID_SIZE, y + GRID_SIZE), COMPLEMENTARY[colour], 2)
 
 def draw_contour(mask, colour, frame):
@@ -106,7 +106,7 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 
 if __name__ == "__main__":
     #cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
-    cap = cv.VideoCapture('example_code/test_video_1.mp4')
+    cap = cv.VideoCapture('example_code/car_view_test1.mp4')
     init_camera_feed(cap)
 
     while True:
@@ -125,6 +125,9 @@ if __name__ == "__main__":
         check_grid_squares(frame, blueMask, BLUE)
         check_grid_squares(frame, yellowMask, YELLOW)
         check_grid_squares(frame, purpleMask, PURPLE)
+
+        height, width = frame.shape[:2]
+        frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'): # press q to close the window and program
