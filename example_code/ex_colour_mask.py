@@ -94,7 +94,7 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 if __name__ == "__main__":
     # cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
     # cap = cv.VideoCapture('2023_video_1.mp4')
-    cap = cv.VideoCapture('car_view_test1.mp4')
+    cap = cv.VideoCapture('QUT_init_data_reduced.mp4')
 
     init_camera_feed(cap)
 

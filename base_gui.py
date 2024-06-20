@@ -65,7 +65,7 @@ video_label2 = Label(root)
 video_label2.pack()
 
 # Open video capture
-address = "https://192.168.187.115:8080//video" # Replace with the video address
+address = "https://192.168.130.148:8080//video" # Replace with the video address
 video = cv2.VideoCapture(0)
 video.open(address)
 

@@ -1,11 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
+import cv2 as cv
+
+from ex_colour_mask import colour_mask
 
 OPTIMAL_SIDE_DISTANCE = 40
 EACH_STEP = True
 SEGMENT_SIZE = 5
 MAX_RANGE = 150
+
+# colours
+GREEN = (0, 255, 0)  # in BGR.
+RED = (0, 0, 255)
+BLUE= (255, 0, 0)
+ORANGE = (0, 128, 255)
+PURPLE = (255, 51, 153)
+YELLOW = (0, 255, 255)
 
 def MAINTAIN_get_range_quartiles(stepNum, x, y, angle, maxRange):
     #polar form
@@ -21,26 +32,6 @@ def MAINTAIN_get_range_quartiles(stepNum, x, y, angle, maxRange):
         else:
             rangeQuartile[index] = maxRange #caps the maximum value
     
-    # for debugging and graphical display
-    if EACH_STEP:
-        ax:List[plt.Axes]
-        fig, ax = plt.subplots(1, 2)
-        plt.suptitle("At stepNum: " + str(stepNum))
-        #displays the rectangular coordinates
-        ax[0].scatter(x, y, label = "track", color = "green")
-        ax[0].set_title("rectangular coordinates" )
-        ax[0].set_xlabel('x (px)')
-        ax[0].set_ylabel('y (px)')
-        ax[0].axis('scaled')
-
-        #displays the polar coordinates
-        ax[1].scatter(theta, r, label = "polar")
-        ax[1].scatter(angle, rangeQuartile, label = "rangeQuartile")
-        ax[1].set_title("polar coordinates")
-        ax[1].set_xlabel('theta (degrees)')
-        ax[1].set_ylabel('range (px)')
-        plt.legend()
-        plt.show()
     return rangeQuartile
 
 def MAINTAIN_process_range_quartile(stepNum, angle, rangeQuartile, maxRange, isLeft):
@@ -96,3 +87,54 @@ def MAINTAIN_follow(frame, stepNum, leftPoints, rightPoints):
     carRange, carHeading = MAINTAIN_process_range_quartile(stepNum, angle, rangeQuartile, MAX_RANGE, isLeft)
     
     return carRange, carHeading
+
+def convert_to_real_life_frame(points, shapeOfFrame):
+    """ the real-life frame is the reality
+    display frame is the scale of the png image made in MS paint
+
+    Args:
+        points (array): input coordinates of MS paint
+        shapeOfFrame (array): the dimension of MS paint image in pixels
+
+    Returns:
+        array: real-life coordinates
+    """
+    points = np.array(points)
+    points = points // 10 # since ten pixels represent 1cm
+    points[0] -= shapeOfFrame[1] // 2 # offset the x-axis by half of frame width, 
+    # so we can see both the left and right
+    return points
+
+def convert_to_display_frame(points, shapeOfFrame):
+    points = np.array(points)
+    points = points * 10 # since ten pixel represent 1cm
+    points[0] += shapeOfFrame[1] // 2
+    return points
+
+if __name__ == "__main__":
+    frame = cv.imread("./basic_sim_with_paint/turn_right.png")
+    frame = cv.flip(frame, 0) # so the x-axis is at the bottom not the top of the frame. 
+    # For images (0, 0) is at the top left corner, instead of the bottom left corner (which is for a typical graph)
+
+    blueMask, yellowMask, purpleMask = colour_mask(frame)
+
+    leftPoints = cv.Canny(yellowMask, 60, 180) # edge detection
+    leftPoints = np.nonzero(leftPoints) # returns a tuple of np.arrays. First array is x and second is for y.
+    realLeft = convert_to_real_life_frame(leftPoints, frame.shape)
+
+    rightPoints = cv.Canny(blueMask, 60, 180)
+    rightPoints = np.nonzero(rightPoints)
+    realRight = convert_to_real_life_frame(rightPoints, frame.shape)
+
+    carRange, carHeading = MAINTAIN_follow(frame, 0, realLeft, realRight)
+    print(f"heading: {carHeading} degrees, carRange: {carRange}")
+    x = carRange * np.sin(np.deg2rad(carHeading))
+    y = carRange * np.cos(np.deg2rad(carHeading))
+    dis_x, dis_y = convert_to_display_frame([x, y], frame.shape)
+    cv.line(frame, tuple(convert_to_display_frame([0, 0], frame.shape)), (round(dis_x), round(dis_y)), GREEN, 3) # marks the prediction of the path planner
+    cv.circle(frame, tuple(convert_to_display_frame([0, 0], frame.shape)), 10, GREEN, -1) # marks the location of the car
+
+    frame = cv.flip(frame, 0) # flip it back
+    cv.imshow('frame', frame)
+    cv.waitKey(0) # press any key to end program
+    print('end')
