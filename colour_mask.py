@@ -42,7 +42,7 @@ def colour_mask(frame):
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([10, 3, 200])
+    lowerYellow = np.array([35, 3, 200])
     upperYellow = np.array([60, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
@@ -52,6 +52,71 @@ def colour_mask(frame):
     purpleMask = cv.inRange(hsv, lowerPurple, upperPurple)
     
     return blueMask, yellowMask, purpleMask
+
+def calculate_average_hsv(mask, hsv_image):
+    """
+    Calculate the average HSV value of the non-zero pixels in the mask.
+    """
+    masked_hsv = cv.bitwise_and(hsv_image, hsv_image, mask=mask)
+    h_values = masked_hsv[:, :, 0][mask > 0]
+    s_values = masked_hsv[:, :, 1][mask > 0]
+    v_values = masked_hsv[:, :, 2][mask > 0]
+
+    if len(h_values) == 0:
+        return (0, 0, 0)
+    
+    avg_h = np.mean(h_values)
+    avg_s = np.mean(s_values)
+    avg_v = np.mean(v_values)
+
+    return (avg_h, avg_s, avg_v)
+
+def flood_fill(mask, x, y, visited):
+    """
+    Perform flood fill to find all connected grid squares.
+    """
+    stack = [(x, y)]
+    component = []
+
+    while stack:
+        cx, cy = stack.pop()
+        if visited[cy, cx]:
+            continue
+
+        visited[cy, cx] = True
+        component.append((cx, cy))
+
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = cx + dx, cy + dy
+            if 0 <= nx < mask.shape[1] and 0 <= ny < mask.shape[0]:
+                if mask[ny, nx] > 0 and not visited[ny, nx]:
+                    stack.append((nx, ny))
+
+    return component
+
+def check_grid_squares2(frame, mask, colour, hsv_image):
+    height, width = frame.shape[:2]
+    visited = np.zeros_like(mask, dtype=bool)
+    for y in range(0, height, GRID_SIZE):
+        for x in range(0, width, GRID_SIZE):
+            if mask[y, x] > 0 and not visited[y, x]:
+                component = flood_fill(mask, x, y, visited)
+                if len(component) > 0:
+                    # Create a mask for the component
+                    component_mask = np.zeros_like(mask)
+                    for cx, cy in component:
+                        component_mask[cy, cx] = 255
+                    
+                    # Calculate the average HSV value of the clump
+                    avg_hsv = calculate_average_hsv(component_mask, hsv_image)
+                    avg_hsv_text = f"H: {avg_hsv[0]:.1f}, S: {avg_hsv[1]:.1f}, V: {avg_hsv[2]:.1f}"
+                    
+                    # Draw bounding box and text
+                    x_coords, y_coords = zip(*component)
+                    x_min, x_max = min(x_coords), max(x_coords)
+                    y_min, y_max = min(y_coords), max(y_coords)
+                    cv.rectangle(frame, (x_min, y_min), (x_max + GRID_SIZE, y_max + GRID_SIZE), COMPLEMENTARY[colour], 2)
+                    cv.putText(frame, avg_hsv_text, (x_min, y_min - 5), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
 
 def check_grid_squares(frame, mask, colour):
     height, width = frame.shape[:2]
@@ -106,7 +171,8 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 
 if __name__ == "__main__":
     #cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
-    cap = cv.VideoCapture('example_code/car_view_test1.mp4')
+    cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
+    #cap = cv.VideoCapture('example_code\car_view_test1.mp4')
     init_camera_feed(cap)
 
     while True:
@@ -118,10 +184,16 @@ if __name__ == "__main__":
             break
 
         frame = cv.flip(frame, 1)
+        hsv_image = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
         blueMask, yellowMask, purpleMask = colour_mask(frame)
         
         #blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
+        '''
+        check_grid_squares2(frame, blueMask, BLUE, hsv_image)
+        check_grid_squares2(frame, yellowMask, YELLOW, hsv_image)
+        check_grid_squares2(frame, purpleMask, PURPLE, hsv_image)
+        '''
         check_grid_squares(frame, blueMask, BLUE)
         check_grid_squares(frame, yellowMask, YELLOW)
         check_grid_squares(frame, purpleMask, PURPLE)
