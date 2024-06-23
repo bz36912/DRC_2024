@@ -23,9 +23,12 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Load the cascade
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+imgtk_global = None
 
 # Define a function to update the video feeds
 def update_frame():
+    global imgtk_global  # Use the global variable
+    
     _, frame = video.read()
     # Resize the frame to 1/4 of its original size
     frame = cv2.resize(frame, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
@@ -33,6 +36,9 @@ def update_frame():
     # Convert the frame to a format tkinter can use
     img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     imgtk = ImageTk.PhotoImage(image=img)
+
+    # Update the global variable
+    imgtk_global = imgtk
 
     # Update both video labels with the same frame
     video_label1.configure(image=imgtk)
