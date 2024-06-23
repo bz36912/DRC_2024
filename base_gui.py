@@ -10,116 +10,143 @@ The GUI shows:
 
 this is some text
 """
-import colour_mask
-import cv2
+from colour_mask import colour_mask, check_grid_squares
+from example_code.ex_colour_mask import get_contour
+from example_code.ex_perspective_transform import perspective_tansform
+import cv2 as cv
 import tkinter as tk
 from tkinter import Label
 from PIL import Image, ImageTk
 import time
 import threading
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.lines import Line2D
+from matplotlib.patches import FancyArrow
+from car_remote_control import Uart
 
 # Load the cascade
-face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-imgtk_global = None
+face_cascade = cv.CascadeClassifier("haarcascade_frontalface_default.xml")
+
+def init_camera_feed(cap):
+    # initialising the video feed
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+    if not cap.isOpened():
+        print("Failed to open webcam")
+        exit()
+
+def init_plot():
+    ax.grid(True)
+    ax.axis('equal')
+    ax.set_xlim(-100, 100)  # Set x-axis limit
+    ax.set_ylim(0, 140)  # Set y-axis limit
+    ax.set_xlabel('X-axis (cm)')
+    ax.set_ylabel('Y-axis (cm)')
+    ax.set_title("Bird's eye view")
+    fig.tight_layout()
 
 # Define a function to update the video feeds
-def update_frame():
-    global imgtk_global  # Use the global variable
-    
+def update_videos():    
     _, frame = video.read()
+    if frame is None:
+        print("end of video feed")
+        exit()
     # Resize the frame to 1/4 of its original size
-    frame = cv2.resize(frame, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+    frame = cv.resize(frame, None, fx=0.25, fy=0.25, interpolation=cv.INTER_AREA)
     
     # Convert the frame to a format tkinter can use
-    img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    img = Image.fromarray(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
     imgtk = ImageTk.PhotoImage(image=img)
 
-    # Update the global variable
-    imgtk_global = imgtk
+    masked = np.copy(frame)
+    blueMask, yellowMask, purpleMask = colour_mask(masked)
+    blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
+
+    masked_img = Image.fromarray(cv.cvtColor(masked, cv.COLOR_BGR2RGB))
+    masked_imgtk = ImageTk.PhotoImage(image=masked_img)
 
     # Update both video labels with the same frame
-    video_label1.configure(image=imgtk)
-    video_label1.imgtk = imgtk
+    video_label1.configure(image=masked_imgtk)
+    video_label1.imgtk = masked_imgtk
     video_label2.configure(image=imgtk)
     video_label2.imgtk = imgtk
+    return blueContour, yellowContour, purpleContour
+
+def update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed):
+    blue.set_data(blueTrans[::, 0], blueTrans[::, 1])
+    yellow.set_data(yellowTrans[::, 0], yellowTrans[::, 1])
+    purple.set_data(purpleTrans[::, 0], purpleTrans[::, 1])
+    # Add the arrow in the corner
+    max_arrow_length = 2  # Fixed maximum length for the arrow
+    arrow_length = max_arrow_length * (speed / 5)  # Scale arrow length based on speed
+    
+    # global arrow
+    arrow.set_data(dx=arrow_length * np.cos(np.radians(direction)), dy=arrow_length * np.sin(np.radians(direction)))
+    text.set_text(f"Speed: {speed} @ {direction} deg")
+
+    # Draw the new plot
+    canvas.draw()
 
 def thread_entry():
     while True:
-        update_frame()
+        for i in range(20):
+            blueContour, yellowContour, purpleContour = update_videos() 
+            # pre-recorded video is at 60fps. Hotspot connection can reach 37fps
+        direction = 45 # dummy value
+        speed = 255 # dummy value
+        # perspective transform (to get bird's eye/top view of the track)
+        blueTrans = perspective_tansform(blueContour.transpose())
+        yellowTrans = perspective_tansform(yellowContour.transpose())
+        purpleTrans = perspective_tansform(purpleContour.transpose())
+        # plot bird's eye view
+        update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
 
 def close_threads():
-    global thread
-    thread.join()
+    # may need to close thread in the future
     root.destroy()
-
-def update_plot(coords, direction, speed):
-    # Clear the previous plot
-    ax.cla()
-    
-    for (x, y) in coords:
-        ax.scatter(x, y, color='blue')  # Set all points to be blue
-    
-    # Add the arrow in the corner
-    max_arrow_length = 2  # Fixed maximum length for the arrow
-    arrow_length = max_arrow_length * (speed / 100)  # Scale arrow length based on speed
-    
-    ax.arrow(0, 0, arrow_length * np.cos(np.radians(direction)), arrow_length * np.sin(np.radians(direction)),
-             head_width=0.2, head_length=0.3, fc='red', ec='red')
-    
-    ax.grid(True)
-    ax.set_xlim(-2, 10)  # Set x-axis limit
-    ax.set_ylim(-2, 10)  # Set y-axis limit
-    ax.set_xlabel('X-axis')
-    ax.set_ylabel('Y-axis')
-    ax.set_title('Scatter plot of points')
-    
-    # Draw the new plot
-    canvas.draw()
-    
-    # Update the speed and direction display
-    speed_dir_label.config(text=f"Speed: {speed}, Direction: {direction} degrees")
+    exit()
 
 # Initialize the main window
 root = tk.Tk()
 root.title("Dual Video Feed")
 root.protocol("WM_DELETE_WINDOW", close_threads)
 
-# Video labels
-video_label1 = Label(root)
-video_label1.pack()
-video_label2 = Label(root)
-video_label2.pack()
-
-# Create a figure
+# elements of the bird's eye graph
+ax:plt.Axes
 fig, ax = plt.subplots()
+blue = Line2D([], [], marker='o', linestyle='None', color='b')
+yellow = Line2D([], [], marker='o', linestyle='None', color='orange')
+purple = Line2D([], [], marker='o', linestyle='None', color='m')
+ax.add_line(blue)
+arrow = FancyArrow(0, 20, 0.5, 0.5, head_width=5, head_length=7, width=0.5, fc='red', ec='red')
+text = ax.text(0, 30, "Speed: @ deg")
+ax.add_patch(arrow)
+ax._request_autoscale_view()
+init_plot()
 
-# Create a canvas for the plot and add it to the Tkinter window
+# create the bird's eye graph
 canvas = FigureCanvasTkAgg(fig, master=root)
 canvas.draw()
 canvas.get_tk_widget().pack()
 
-# Label to display speed and direction
-speed_dir_label = Label(root, text="Speed: , Direction: ")
-speed_dir_label.pack()
-
-# Example of how to call update_plot with new data
-def simulate_data_update():
-    coords = [(np.random.randint(0, 10), np.random.randint(0, 10)) for _ in range(10)]
-    direction = np.random.randint(0, 360)
-    speed = np.random.randint(0, 100)
-    update_plot(coords, direction, speed)
-    root.after(1000, simulate_data_update)
-
-# Start updating the plot with new data
-simulate_data_update()
+# Video labels
+video_label1 = Label(root)
+video_label1.pack(side='right')
+video_label2 = Label(root)
+video_label2.pack(side='bottom')
 
 # Open video capture
-address = "https://192.168.0.150:8080//video" # Replace with the video address
-video = cv2.VideoCapture(0)
-video.open(address)
+# address = "https://192.168.108.85:8080//video" # Replace with the video address
+# video = cv.VideoCapture(0)
+# video.open(address)
+
+# video = cv.VideoCapture('example_code/QUT_init_data_reduced.mp4')
+video = cv.VideoCapture('example_code/car_view_test1.mp4')
+init_camera_feed(video)
 
 # Start the video loop
 thread = threading.Thread(target=thread_entry)
@@ -130,9 +157,4 @@ root.mainloop()
 
 # Release the video capture when the window is closed
 video.release()
-cv2.destroyAllWindows()
-
-
-
-
-
+cv.destroyAllWindows()
