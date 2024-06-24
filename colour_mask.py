@@ -38,12 +38,12 @@ def colour_mask(frame):
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     #lower bound and upper bound for blue
-    lowerBlue = np.array([70, 110, 200])
+    lowerBlue = np.array([50, 70, 180])
     upperBlue = np.array([130, 255, 255])
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([30, 3, 200])
+    lowerYellow = np.array([20, 3, 190])
     upperYellow = np.array([60, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
@@ -266,23 +266,12 @@ def draw_contour(mask, colour, frame):
     for contour in contours:
         area = cv.contourArea(contour)
         if area > 400: #only include large areas of the colour
-
-
-            rect = cv.minAreaRect(contour)  # Get the minimum area rectangle
-            box = cv.boxPoints(rect)
-            box = np.int0(box)
-            # Calculate width and height of the rotated rectangle
-            width = rect[1][0]
-            height = rect[1][1]
-            aspect_ratio = float(width) / height if height != 0 else 0
-
-
-            if 4 < aspect_ratio < 10 or 4 < 1/aspect_ratio < 10:  # Adjust the range as needed
-                contourArray = np.concatenate((contourArray, np.squeeze(contour)))
-                cv.drawContours(frame, [box], 0, COMPLEMENTARY[colour], 2)
-                cv.putText(frame, f"AR: {aspect_ratio:.2f}", (int(rect[0][0]), int(rect[0][1])), 
-                        cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
+            contourArray = np.concatenate((contourArray, np.squeeze(contour)))
+            cv.drawContours(frame, [contour], 0, COMPLEMENTARY[colour], 2) 
+            # Ib will use cv.drawContours to display the countour on GUI for debugging
+        else:
+            #contourArray = np.concatenate((contourArray, np.squeeze(contour)))
+            cv.drawContours(frame, [contour], 0, (0, 0, 255), 2) 
     return contourArray # Bryce wants this for his perspective transform part. The array's shape is N X 2
     # N is the number of points that defines the outline. The first coloum is x and second is y-coordinate.
 
@@ -294,8 +283,9 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 
 if __name__ == "__main__":
     #cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
-    cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
+    #cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
     # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
+    cap = cv.VideoCapture('example_code\AEB_data.mp4')
     init_camera_feed(cap)
 
     while True:
@@ -311,16 +301,16 @@ if __name__ == "__main__":
 
         blueMask, yellowMask, purpleMask = colour_mask(frame)
         
-        #blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
-        #'''
+        blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
+        '''
         check_grid_squares2(frame, blueMask, BLUE, hsv_image)
         check_grid_squares2(frame, yellowMask, YELLOW, hsv_image)
         check_grid_squares2(frame, purpleMask, PURPLE, hsv_image)
+        
+        check_grid_squares4(frame, blueMask, BLUE)
+        check_grid_squares4(frame, yellowMask, YELLOW)
+        check_grid_squares4(frame, purpleMask, PURPLE)
         '''
-        check_grid_squares3(frame, blueMask, BLUE)
-        check_grid_squares3(frame, yellowMask, YELLOW)
-        check_grid_squares3(frame, purpleMask, PURPLE)
-        #'''
         height, width = frame.shape[:2]
         frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)
