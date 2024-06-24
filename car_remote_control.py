@@ -13,8 +13,8 @@ class Uart():
         checkConnectionThread.start()
 
     def _uart_init(self) -> serial.Serial:
-        # port = "/dev/tty.REMOTE_CTRL"
-        port = "COM10"
+        port = "/dev/tty.REMOTE_CTRL"
+        # port = "COM10"
         baud = 115200
         ser = serial.Serial(port, baud, timeout=0.1)
         print("Connected to Arduino port: " + port)
@@ -66,10 +66,10 @@ if __name__ == "__main__":
     uart = Uart()
 
     # testing uart
-    time.sleep(3)
-    uart.send_command(30, 100) # use this in the GUI
-    time.sleep(3)
-    uart.send_command(-45, 120)
+    # time.sleep(3)
+    # uart.send_command(30, 100) # use this in the GUI
+    # time.sleep(3)
+    # uart.send_command(-45, 120)
     while True:
         time.sleep(1)
         if uart.terminateFlag: # use this GUI to check if q is pressed to terminate program

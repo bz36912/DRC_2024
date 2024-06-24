@@ -131,13 +131,13 @@ midFrame = tk.Frame(root)
 def load_video2():
     pass
 
-vid_player = TkinterVideo(scaled=True, master=midFrame)
+vid_player = TkinterVideo(scaled=True, master=midFrame, bg='green')
 vid_player.pack(side='right', expand=True, fill="both")
 vid_player.load('example_code/car_view_test1.mp4')
 vid_player.play()
 
-video_label1 = Label(topFrame)
-video_label1.pack(side='left', expand=True, fill="both")
+video_label1 = Label(topFrame, bg='blue')
+video_label1.pack(side='top', expand=True, fill="both")
 
 bottomFrame = tk.Frame(root)
 play_pause_btn = tk.Button(bottomFrame, text="Play", command=load_video2)
