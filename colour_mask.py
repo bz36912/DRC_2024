@@ -295,7 +295,7 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
 if __name__ == "__main__":
     #cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
     cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
-    #cap = cv.VideoCapture('example_code\car_view_test1.mp4')
+    # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
     init_camera_feed(cap)
 
     while True:
@@ -317,10 +317,10 @@ if __name__ == "__main__":
         check_grid_squares2(frame, yellowMask, YELLOW, hsv_image)
         check_grid_squares2(frame, purpleMask, PURPLE, hsv_image)
         '''
-        check_grid_squares4(frame, blueMask, BLUE)
-        check_grid_squares4(frame, yellowMask, YELLOW)
-        check_grid_squares4(frame, purpleMask, PURPLE)
-        '''
+        check_grid_squares3(frame, blueMask, BLUE)
+        check_grid_squares3(frame, yellowMask, YELLOW)
+        check_grid_squares3(frame, purpleMask, PURPLE)
+        #'''
         height, width = frame.shape[:2]
         frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)

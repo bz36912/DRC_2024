@@ -1,15 +1,3 @@
-"""Ib is doing it
-It is for visualising the data, which help us to debug and develop the data processing and
-self-driving algorithm.
-It helps us to see what the car is seeing so we can better understand its behaviour.
-The GUI shows:
-    - the raw video feed
-    - annotated feed with contours/outlines from colour masking
-    - after perspective transform and an arrow showing the direction (angle) and speed (length of arrow)
-        the path planner directs the car to drive in
-
-this is some text
-"""
 from colour_mask import colour_mask, check_grid_squares
 from example_code.ex_colour_mask import get_contour
 from example_code.ex_perspective_transform import perspective_tansform
@@ -26,7 +14,10 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrow
-from car_remote_control import Uart
+
+import datetime
+from tkinter import filedialog
+from tkVideoPlayer import TkinterVideo
 
 # Load the cascade
 face_cascade = cv.CascadeClassifier("haarcascade_frontalface_default.xml")
@@ -50,30 +41,29 @@ def init_plot():
     fig.tight_layout()
 
 # Define a function to update the video feeds
-def update_videos():    
-    _, frame = video.read()
-    if frame is None:
-        print("end of video feed")
-        exit()
+def update_videos():
+    while True:
+        frame = vid_player.current_img()
+        if frame is None:
+            time.sleep(0.2)
+        else:
+            break
+    frame = np.array(frame)
+    frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
     # Resize the frame to 1/4 of its original size
     frame = cv.resize(frame, None, fx=0.25, fy=0.25, interpolation=cv.INTER_AREA)
     
     # Convert the frame to a format tkinter can use
-    img = Image.fromarray(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
-    imgtk = ImageTk.PhotoImage(image=img)
 
     masked = np.copy(frame)
     blueMask, yellowMask, purpleMask = colour_mask(masked)
     blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
-
     masked_img = Image.fromarray(cv.cvtColor(masked, cv.COLOR_BGR2RGB))
     masked_imgtk = ImageTk.PhotoImage(image=masked_img)
 
     # Update both video labels with the same frame
     video_label1.configure(image=masked_imgtk)
     video_label1.imgtk = masked_imgtk
-    video_label2.configure(image=imgtk)
-    video_label2.imgtk = imgtk
     return blueContour, yellowContour, purpleContour
 
 def update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed):
@@ -128,33 +118,60 @@ ax.add_patch(arrow)
 ax._request_autoscale_view()
 init_plot()
 
-# create the bird's eye graph
-canvas = FigureCanvasTkAgg(fig, master=root)
-canvas.draw()
-canvas.get_tk_widget().pack(side='top')
-
 # Video labels
-video_label1 = Label(root)
-video_label1.pack(side='left', expand=True, fill='both')
-video_label2 = Label(root)
-video_label2.pack(side='left', expand=True, fill='both')
+topFrame = tk.Frame(root)
+# create the bird's eye graph
+canvas = FigureCanvasTkAgg(fig, master=topFrame)
+canvas.draw()
+canvas.get_tk_widget().pack(side='left')
 
-# Open video capture
-# address = "https://192.168.108.85:8080//video" # Replace with the video address
-# video = cv.VideoCapture(0)
-# video.open(address)
+midFrame = tk.Frame(root)
 
-# video = cv.VideoCapture('example_code/QUT_init_data_reduced.mp4')
-video = cv.VideoCapture('example_code/car_view_test1.mp4')
-init_camera_feed(video)
+###########
+def load_video2():
+    pass
+
+vid_player = TkinterVideo(scaled=True, master=midFrame)
+vid_player.pack(side='right', expand=True, fill="both")
+vid_player.load('example_code/car_view_test1.mp4')
+vid_player.play()
+
+video_label1 = Label(topFrame)
+video_label1.pack(side='left', expand=True, fill="both")
+
+bottomFrame = tk.Frame(root)
+play_pause_btn = tk.Button(bottomFrame, text="Play", command=load_video2)
+play_pause_btn.pack()
+
+skip_plus_5sec = tk.Button(bottomFrame, text="Skip -5 sec", command=lambda: load_video2)
+skip_plus_5sec.pack(side="left")
+
+start_time = tk.Label(bottomFrame, text=str(datetime.timedelta(seconds=0)))
+start_time.pack(side="left")
+
+progress_value = tk.IntVar(bottomFrame)
+
+progress_slider = tk.Scale(bottomFrame, variable=progress_value, from_=0, to=0, orient="horizontal", command=load_video2)
+# progress_slider.bind("<ButtonRelease-1>", seek)
+progress_slider.pack(side="left", fill="x", expand=True)
+
+end_time = tk.Label(bottomFrame, text=str(datetime.timedelta(seconds=0)))
+end_time.pack(side="left")
+skip_plus_5sec = tk.Button(bottomFrame, text="Skip +5 sec", command=lambda: load_video2)
+skip_plus_5sec.pack(side="left")
+
+topFrame.pack(side='top', expand=True, fill="x")
+midFrame.pack(side='top', expand=True, fill="both")
+bottomFrame.pack(side='top')
+########
 
 # Start the video loop
 thread = threading.Thread(target=thread_entry)
 thread.start()
+time.sleep(0.5)
 
 # Run the application
 root.mainloop()
 
 # Release the video capture when the window is closed
-video.release()
 cv.destroyAllWindows()
