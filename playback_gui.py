@@ -18,6 +18,35 @@ from matplotlib.patches import FancyArrow
 import datetime
 from tkinter import filedialog
 from tkVideoPlayer import TkinterVideo
+from base_gui_oop import Gui
+
+FILENAME = 'example_code/car_view_test1.mp4'
+# FILENAME = 'example_code/QUT_init_data_reduced.mp4'
+RESOLUTION = (360, 640, 3)
+
+class PlaybackGui(Gui):
+    def __init__(self) -> None:
+        # init tkinter
+        self.root = tk.Tk()
+        self.root.title("Dual Video Feed")
+        self.root.protocol("WM_DELETE_WINDOW", self.close_threads)
+        # using tkinter Labels, Frames and Widgets
+        self.init_plot()
+        self.init_gui_elements()
+
+        self.cap = self.init_camera_feed(FILENAME)
+
+        thread = threading.Thread(target=self.thread_entry)
+        thread.start()
+
+        self.root.mainloop()
+        self.cap.release()
+    
+    def init_camera_feed(self, fileName):
+        cap = cv.VideoCapture(fileName)
+        if not cap.isOpened():
+            print("Failed to open video feed")
+            exit()
 
 # Load the cascade
 face_cascade = cv.CascadeClassifier("haarcascade_frontalface_default.xml")

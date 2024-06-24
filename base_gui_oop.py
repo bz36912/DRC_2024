@@ -30,9 +30,10 @@ from car_remote_control import Uart
 
 ADDRESS = "https://192.168.126.231:8080//video" # Replace with the video address
 # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
-
+RESOLUTION = (360, 640, 3)
 # Load the cascade
 face_cascade = cv.CascadeClassifier("haarcascade_frontalface_default.xml")
+
 class Gui():
     def __init__(self) -> None:
         # init tkinter
@@ -43,12 +44,9 @@ class Gui():
         self.init_plot()
         self.init_gui_elements()
 
-        
-        # self.cap = self.init_camera_feed('example_code/QUT_init_data_reduced.mp4')
-        # self.cap = self.init_camera_feed('example_code/car_view_test1.mp4')
         self.cap = self.init_camera_feed(ADDRESS)
         testFrame = self.get_next_video_frame()
-        assert testFrame.shape == (360, 640, 3), "ERROR in Gui::Gui: video resolution is incorrect. Check settings \
+        assert testFrame.shape == RESOLUTION, "ERROR in Gui::Gui: video resolution is incorrect. Check settings \
             on IP Webcam Android app"
 
         thread = threading.Thread(target=self.thread_entry)
@@ -57,13 +55,7 @@ class Gui():
         self.root.mainloop()
         self.cap.release()
 
-
     def init_camera_feed(self, address):
-        # cap = cv.VideoCapture(fileName)
-        # if not cap.isOpened():
-        #     print("Failed to open video feed")
-        #     exit()
-
         cap = cv.VideoCapture(0)
         cap.open(address)
         return cap
@@ -79,7 +71,7 @@ class Gui():
         self.ax.add_line(self.yellow)
         self.ax.add_line(self.purple)
         self.text = self.ax.text(0, 30, "Speed: @ deg")
-        self.arrow = FancyArrow(0, 20, 0.5, 0.5, head_width=5, head_length=7, width=0.5, fc='red', ec='red')
+        self.arrow = FancyArrow(0, 0, 0.5, 0.5, head_width=5, head_length=7, width=0.5, fc='red', ec='red')
         self.ax.add_patch(self.arrow)
         self.ax._request_autoscale_view()
 
@@ -87,7 +79,7 @@ class Gui():
         self.ax.grid(True)
         self.ax.axis('equal')
         self.ax.set_xlim(-100, 100)  # Set x-axis limit
-        self.ax.set_ylim(0, 140)  # Set y-axis limit
+        self.ax.set_ylim(-20, 120)  # Set y-axis limit
         self.ax.set_xlabel('X-axis (cm)')
         self.ax.set_ylabel('Y-axis (cm)')
         self.ax.set_title("Bird's eye view")
@@ -102,10 +94,6 @@ class Gui():
     
     def display_video_frame(self, frame, videoLabel):
         img = Image.fromarray(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
-        
-        # videoLabel.config(width=self.root.winfo_width() // 2)
-        # resized = img.resize((videoLabel.winfo_width(), videoLabel.winfo_height()), Image.ANTIALIAS)
-
         imgtk = ImageTk.PhotoImage(image=img)
         videoLabel.configure(image=imgtk)
         videoLabel.imgtk = imgtk
@@ -157,11 +145,13 @@ class Gui():
         self.topFrame = tk.Frame(self.root)
         self.secondFrame = tk.Frame(self.root) # the frame below the top frame
         # create the bird's eye graph
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.topFrame)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.secondFrame)
         self.canvas.draw()
         # Video labels
-        self.video_label1 = Label(self.secondFrame, bg='green')
-        self.video_label2 = Label(self.secondFrame, bg='blue')
+        self.video_label1 = Label(self.topFrame, bg='green')
+        self.video_label2 = Label(self.topFrame, bg='blue')
+        self.video_label1.config(height=RESOLUTION[0])
+        self.video_label2.config(height=RESOLUTION[0])
 
         # layout of the elements
         self.canvas.get_tk_widget().pack(side='left')
@@ -169,7 +159,6 @@ class Gui():
         self.video_label2.pack(side='left', expand=True, fill='both')
         self.topFrame.pack(side='top')
         self.secondFrame.pack(side='top', expand=True, fill="both")
-        
 
 if __name__ == "__main__":
     gui = Gui()
