@@ -18,7 +18,7 @@ YELLOW = (0, 255, 255)
 
 # Grid size
 GRID_SIZE = 15
-MIN_CLUMP_SIZE = 10
+MIN_CLUMP_SIZE = 35
 
 # the colour green will be marked by red outline. Purple by yellow outline and so on.
 # basically the complementary colour pairs on the colour wheel
@@ -43,7 +43,7 @@ def colour_mask(frame):
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([25, 3, 200])
+    lowerYellow = np.array([30, 3, 200])
     upperYellow = np.array([60, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
@@ -86,7 +86,7 @@ def flood_fill2(x, y, visited, mask):
 
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = cx + dx, cy + dy
-            if 0 <= nx < width and 0 <= ny < height:
+            if 0 <= nx < mask.shape[1] and 0 <= ny < mask.shape[0]:
                 if mask[ny, nx] > 0 and not visited[ny, nx]:
                     stack.append((nx, ny))
 
@@ -100,16 +100,17 @@ def grid_square_component2(component):
         return list(squares)
 
 def check_grid_squares2(frame, mask, colour, hsv_image):
+    # This one is for checking the hsv values
     height, width = frame.shape[:2]
     visited = np.zeros_like(mask, dtype=bool)
     for y in range(0, height, GRID_SIZE):
         for x in range(0, width, GRID_SIZE):
             if mask[y, x] > 0 and not visited[y, x]:
-                component = flood_fill2(mask, x, y, visited)
+                component = flood_fill2(x, y, visited, mask)
                 if len(component) > 0:
 
-                    if len(component) < MIN_CLUMP_SIZE:
-                        continue
+                    #if len(component) < MIN_CLUMP_SIZE:
+                    #    continue
 
                     # Create a mask for the component
                     component_mask = np.zeros_like(mask)
@@ -121,13 +122,14 @@ def check_grid_squares2(frame, mask, colour, hsv_image):
                     avg_hsv_text = f"H: {avg_hsv[0]:.1f}, S: {avg_hsv[1]:.1f}, V: {avg_hsv[2]:.1f}"
                     
                     # Draw bounding box and text
-                    for cx, cy in component:
-                        top_left = (cx, cy)
-                        bottom_right = (cx + GRID_SIZE, cy + GRID_SIZE)
-                        cv.rectangle(frame, top_left, bottom_right, COMPLEMENTARY[colour], 1)
-                        cv.putText(frame, avg_hsv_text, (cx, cy - 5), cv.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                    x_coords, y_coords = zip(*component)
+                    x_min, x_max = min(x_coords), max(x_coords)
+                    y_min, y_max = min(y_coords), max(y_coords)
+                    cv.rectangle(frame, (x_min, y_min), (x_max + GRID_SIZE, y_max + GRID_SIZE), COMPLEMENTARY[colour], 2)
+                    cv.putText(frame, avg_hsv_text, (x_min, y_min - 5), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
 
 def check_grid_squares3(frame, mask, colour):
+    # This one is for removing small clumps
     height, width = frame.shape[:2]
     visited = np.zeros_like(mask, dtype=bool)
     
@@ -166,7 +168,7 @@ def check_grid_squares3(frame, mask, colour):
                 component = flood_fill(x, y)
                 grid_squares = grid_square_component(component)
                 clump_size = len(grid_squares)
-                if len(grid_squares) < 40:
+                if len(grid_squares) < MIN_CLUMP_SIZE:
                     continue  # Skip small clumps
                 
                 for (gx, gy) in grid_squares:
@@ -182,8 +184,64 @@ def check_grid_squares3(frame, mask, colour):
     for center_x, center_y, clump_size in clump_centers:
         cv.putText(frame, str(clump_size), (center_x, center_y), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
+def check_grid_squares4(frame, mask, colour):
+    # This one is for turning small clumps red
+    height, width = frame.shape[:2]
+    visited = np.zeros_like(mask, dtype=bool)
+    
+    def flood_fill(x, y):
+        stack = [(x, y)]
+        component = []
+
+        while stack:
+            cx, cy = stack.pop()
+            if visited[cy, cx]:
+                continue
+
+            visited[cy, cx] = True
+            component.append((cx, cy))
+
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = cx + dx, cy + dy
+                if 0 <= nx < width and 0 <= ny < height:
+                    if mask[ny, nx] > 0 and not visited[ny, nx]:
+                        stack.append((nx, ny))
+
+        return component
+    
+    def grid_square_component(component):
+        squares = set()
+        for (cx, cy) in component:
+            gx, gy = (cx // GRID_SIZE) * GRID_SIZE, (cy // GRID_SIZE) * GRID_SIZE
+            squares.add((gx, gy))
+        return list(squares)
+    
+    clump_centers = []
+
+    for y in range(0, height, GRID_SIZE):
+        for x in range(0, width, GRID_SIZE):
+            if mask[y, x] > 0 and not visited[y, x]:
+                component = flood_fill(x, y)
+                grid_squares = grid_square_component(component)
+                clump_size = len(grid_squares)
+                color_to_draw = (0, 0, 255) if clump_size < MIN_CLUMP_SIZE else COMPLEMENTARY[colour]
+
+                for (gx, gy) in grid_squares:
+                    non_zero_count = cv.countNonZero(mask[gy:gy+GRID_SIZE, gx:gx+GRID_SIZE])
+                    if non_zero_count > (GRID_SIZE * GRID_SIZE) / 6:
+                        cv.rectangle(frame, (gx, gy), (gx + GRID_SIZE, gy + GRID_SIZE), color_to_draw, 2)
+
+                if grid_squares:
+                    center_x = sum([gx for gx, gy in grid_squares]) // len(grid_squares)
+                    center_y = sum([gy for gx, gy in grid_squares]) // len(grid_squares)
+                    clump_centers.append((center_x, center_y, clump_size))
+
+    for center_x, center_y, clump_size in clump_centers:
+        cv.putText(frame, str(clump_size), (center_x, center_y), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
 
 def check_grid_squares(frame, mask, colour):
+    # This one is the default one
     height, width = frame.shape[:2]
     for y in range(0, height, GRID_SIZE):
         for x in range(0, width, GRID_SIZE):
@@ -254,15 +312,15 @@ if __name__ == "__main__":
         blueMask, yellowMask, purpleMask = colour_mask(frame)
         
         #blueContour, yellowContour, purpleContour = get_contour(frame, blueMask, yellowMask, purpleMask)
-        '''
+        #'''
         check_grid_squares2(frame, blueMask, BLUE, hsv_image)
         check_grid_squares2(frame, yellowMask, YELLOW, hsv_image)
         check_grid_squares2(frame, purpleMask, PURPLE, hsv_image)
         '''
-        check_grid_squares3(frame, blueMask, BLUE)
-        check_grid_squares3(frame, yellowMask, YELLOW)
-        check_grid_squares3(frame, purpleMask, PURPLE)
-        #'''
+        check_grid_squares4(frame, blueMask, BLUE)
+        check_grid_squares4(frame, yellowMask, YELLOW)
+        check_grid_squares4(frame, purpleMask, PURPLE)
+        '''
         height, width = frame.shape[:2]
         frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)
