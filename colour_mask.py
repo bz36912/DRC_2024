@@ -43,7 +43,7 @@ def colour_mask(frame):
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([20, 3, 190])
+    lowerYellow = np.array([30, 3, 190])
     upperYellow = np.array([60, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
@@ -265,8 +265,21 @@ def draw_contour(mask, colour, frame):
     contourArray = np.zeros((0, 2)) #just an empty array
     for contour in contours:
         area = cv.contourArea(contour)
-        if area > 400: #only include large areas of the colour
-            contourArray = np.concatenate((contourArray, np.squeeze(contour)))
+        perimeter = cv.arcLength(contour,True)
+
+        rect = cv.minAreaRect(contour)  # Get the minimum area rectangle
+        box = cv.boxPoints(rect)
+        box = np.int0(box)
+        # Calculate width and height of the rotated rectangle
+        width = rect[1][0]
+        height = rect[1][1]
+        aspect_ratio = float(width) / height if height != 0 else 0
+        perimeter_area_ratio = 10* perimeter/area  if area !=0 else 0 # we want this to be lower
+
+        cv.putText(frame, f"A: {perimeter_area_ratio:.2f}", (int(rect[0][0]), int(rect[0][1])), 
+                        cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        if perimeter_area_ratio < 0.4: #and not (1/2.7 < aspect_ratio < 2.7): #only include large areas of the colour
+            contourArray = np.concatenate((contourArray, contour.reshape(-1, 2)))
             cv.drawContours(frame, [contour], 0, COMPLEMENTARY[colour], 2) 
             # Ib will use cv.drawContours to display the countour on GUI for debugging
         else:
