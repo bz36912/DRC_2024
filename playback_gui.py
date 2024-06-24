@@ -58,8 +58,14 @@ def update_videos():
     masked = np.copy(frame)
     blueMask, yellowMask, purpleMask = colour_mask(masked)
     blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
-    masked_img = Image.fromarray(cv.cvtColor(masked, cv.COLOR_BGR2RGB))
-    masked_imgtk = ImageTk.PhotoImage(image=masked_img)
+    masked_pil = Image.fromarray(cv.cvtColor(masked, cv.COLOR_BGR2RGB))
+
+    video_label1.config(width=root.winfo_width() // 2)
+    vid_player.config(width=root.winfo_width() // 2)
+    label_width = max(video_label1.winfo_width() - 5, 1)  # Get the current width of video_label1
+    label_height = max(video_label1.winfo_height() - 5, 1) # Get the current height of video_label1
+    masked_resized = masked_pil.resize((label_width, label_height), Image.ANTIALIAS)
+    masked_imgtk = ImageTk.PhotoImage(image=masked_resized)
 
     # Update both video labels with the same frame
     video_label1.configure(image=masked_imgtk)
@@ -120,28 +126,28 @@ init_plot()
 
 # Video labels
 topFrame = tk.Frame(root)
+midFrame = tk.Frame(root)
 # create the bird's eye graph
 canvas = FigureCanvasTkAgg(fig, master=topFrame)
 canvas.draw()
-canvas.get_tk_widget().pack(side='left')
-
-midFrame = tk.Frame(root)
+canvasWidget = canvas.get_tk_widget()
+canvasWidget.pack(side='left')
 
 ###########
 def load_video2():
     pass
 
 vid_player = TkinterVideo(scaled=True, master=midFrame, bg='green')
-vid_player.pack(side='right', expand=True, fill="both")
+vid_player.pack(side='left', expand=True, fill="both")
 vid_player.load('example_code/car_view_test1.mp4')
 vid_player.play()
 
-video_label1 = Label(topFrame, bg='blue')
-video_label1.pack(side='top', expand=True, fill="both")
+video_label1 = Label(midFrame, bg='blue')
+video_label1.pack(side='right', expand=True, fill="both")
 
 bottomFrame = tk.Frame(root)
 play_pause_btn = tk.Button(bottomFrame, text="Play", command=load_video2)
-play_pause_btn.pack()
+play_pause_btn.pack(side="left")
 
 skip_plus_5sec = tk.Button(bottomFrame, text="Skip -5 sec", command=lambda: load_video2)
 skip_plus_5sec.pack(side="left")
@@ -160,7 +166,7 @@ end_time.pack(side="left")
 skip_plus_5sec = tk.Button(bottomFrame, text="Skip +5 sec", command=lambda: load_video2)
 skip_plus_5sec.pack(side="left")
 
-topFrame.pack(side='top', expand=True, fill="x")
+topFrame.pack(side='top')
 midFrame.pack(side='top', expand=True, fill="both")
 bottomFrame.pack(side='top')
 ########
