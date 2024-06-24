@@ -278,7 +278,7 @@ def draw_contour(mask, colour, frame):
 
         cv.putText(frame, f"A: {perimeter_area_ratio:.2f}", (int(rect[0][0]), int(rect[0][1])), 
                         cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        if perimeter_area_ratio < 0.4: #and not (1/2.7 < aspect_ratio < 2.7): #only include large areas of the colour
+        if perimeter_area_ratio > 0.65: #only include large areas of the colour
             contourArray = np.concatenate((contourArray, contour.reshape(-1, 2)))
             cv.drawContours(frame, [contour], 0, COMPLEMENTARY[colour], 2) 
             # Ib will use cv.drawContours to display the countour on GUI for debugging
@@ -295,10 +295,11 @@ def get_contour(frame, blueMask, yellowMask, purpleMask):
     return blueContour, yellowContour, purpleContour
 
 if __name__ == "__main__":
-    #cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
-    #cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
+    # cap = cv.VideoCapture(0) # representing the camera feed using the laptop's built-in camera
+    # cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
     # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
-    cap = cv.VideoCapture('example_code\AEB_data.mp4')
+    # cap = cv.VideoCapture('example_code\AEB_data2.mp4')
+    cap = cv.VideoCapture('example_code/2023_video_1.mp4')
     init_camera_feed(cap)
 
     while True:
