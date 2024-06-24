@@ -311,6 +311,7 @@ if __name__ == "__main__":
             break
 
         frame = cv.flip(frame, 1)
+
         hsv_image = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
         blueMask, yellowMask, purpleMask = colour_mask(frame)
@@ -326,7 +327,7 @@ if __name__ == "__main__":
         check_grid_squares4(frame, purpleMask, PURPLE)
         '''
         height, width = frame.shape[:2]
-        frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
+        #frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'): # press q to close the window and program
