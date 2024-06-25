@@ -17,25 +17,24 @@ import cv2 as cv
 import tkinter as tk
 from tkinter import Label
 from PIL import Image, ImageTk
-import time
 import threading
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrow
 from car_remote_control import Uart
-
-ADDRESS = "https://192.168.126.231:8080//video" # Replace with the video address
-# IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
-RESOLUTION = (360, 640, 3)
-# Load the cascade
-face_cascade = cv.CascadeClassifier("haarcascade_frontalface_default.xml")
+from path_planner_1 import dummy_path_planner
 
 class Gui():
+    ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
+    # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
+    RESOLUTION = (360, 640, 3)
+    PLOT_GRAPH_EVERY_N_CYCLE = 20
     def __init__(self) -> None:
+        matplotlib.use('TkAgg')
+        cv.CascadeClassifier("haarcascade_frontalface_default.xml") # Load the cascade
         # init tkinter
         self.root = tk.Tk()
         self.root.title("Dual Video Feed")
@@ -44,22 +43,20 @@ class Gui():
         self.init_plot()
         self.init_gui_elements()
 
-        self.cap = self.init_camera_feed(ADDRESS)
-        testFrame = self.get_next_video_frame()
-        assert testFrame.shape == RESOLUTION, "ERROR in Gui::Gui: video resolution is incorrect. Check settings \
-            on IP Webcam Android app"
-
+        self.cap = self.init_camera_feed(self.ADDRESS)
+        
         thread = threading.Thread(target=self.thread_entry)
         thread.start()
 
         self.root.mainloop()
-        self.cap.release()
+        if self.cap is not None:
+            self.cap.release()
 
     def init_camera_feed(self, address):
         cap = cv.VideoCapture(0)
         cap.open(address)
         return cap
-
+    
     def init_plot(self):
         # add elements to the plot
         self.ax:plt.Axes
@@ -90,6 +87,7 @@ class Gui():
         if frame is None:
             print("end of video feed")
             exit()
+        assert frame.shape == self.RESOLUTION, "ERROR in Gui::Gui: video resolution is incorrect."
         return frame
     
     def display_video_frame(self, frame, videoLabel):
@@ -99,14 +97,14 @@ class Gui():
         videoLabel.imgtk = imgtk
 
     def update_plot(self, blueTrans, yellowTrans, purpleTrans, direction, speed):
+        # plot the location of track and obstacles
         self.blue.set_data(blueTrans[::, 0], blueTrans[::, 1])
         self.yellow.set_data(yellowTrans[::, 0], yellowTrans[::, 1])
         self.purple.set_data(purpleTrans[::, 0], purpleTrans[::, 1])
-        # Add the arrow in the corner
+
+        # Add the arrow onto the graph indicate the decison of the path planner
         max_arrow_length = 2  # Fixed maximum length for the arrow
         arrow_length = max_arrow_length * (speed / 5)  # Scale arrow length based on speed
-        
-        # global arrow
         self.arrow.set_data(dx=arrow_length * np.cos(np.radians(direction)), dy=arrow_length * np.sin(np.radians(direction)))
         self.text.set_text(f"Speed: {speed} @ {direction} deg")
 
@@ -114,24 +112,25 @@ class Gui():
         self.canvas.draw()
 
     def thread_entry(self):
+        cycle = 0
         while True:
-            for i in range(20):
-                frame = self.get_next_video_frame()
-                # pre-recorded video is at 60fps. Hotspot connection can reach 37fps
-                masked = np.copy(frame)
-                blueMask, yellowMask, purpleMask = colour_mask(masked)
-                blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
+            frame = self.get_next_video_frame()
+            # pre-recorded video is at 60fps. Hotspot connection can reach 37fps
+            masked = np.copy(frame)
+            blueMask, yellowMask, purpleMask = colour_mask(masked)
+            blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
 
-                self.display_video_frame(masked, self.video_label1)
-                self.display_video_frame(frame, self.video_label2)
-            direction = 45 # dummy value
-            speed = 255 # dummy value
+            self.display_video_frame(masked, self.video_label1)
+            self.display_video_frame(frame, self.video_label2)            
             # perspective transform (to get bird's eye/top view of the track)
             blueTrans = perspective_tansform(blueContour.transpose())
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
-            # plot bird's eye view
-            self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
+            direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
+            if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
+                # plot bird's eye view
+                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
+            cycle += 1
 
     def close_threads(self):
         # may need to close thread in the future
@@ -150,14 +149,13 @@ class Gui():
         # Video labels
         self.video_label1 = Label(self.topFrame, bg='green')
         self.video_label2 = Label(self.topFrame, bg='blue')
-        self.video_label1.config(height=RESOLUTION[0])
-        self.video_label2.config(height=RESOLUTION[0])
 
         # layout of the elements
         self.canvas.get_tk_widget().pack(side='left')
         self.video_label1.pack(side='right', expand=True, fill='both')
         self.video_label2.pack(side='left', expand=True, fill='both')
         self.topFrame.pack(side='top')
+        self.topFrame.config(height=self.RESOLUTION[0])
         self.secondFrame.pack(side='top', expand=True, fill="both")
 
 if __name__ == "__main__":

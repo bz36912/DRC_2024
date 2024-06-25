@@ -1,212 +1,141 @@
-from colour_mask import colour_mask, check_grid_squares
-from example_code.ex_colour_mask import get_contour
-from example_code.ex_perspective_transform import perspective_tansform
 import cv2 as cv
 import tkinter as tk
-from tkinter import Label
-from PIL import Image, ImageTk
 import time
 import threading
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.lines import Line2D
-from matplotlib.patches import FancyArrow
-
 import datetime
-from tkinter import filedialog
 from tkVideoPlayer import TkinterVideo
-from base_gui_oop import Gui
 
-FILENAME = 'example_code/car_view_test1.mp4'
-# FILENAME = 'example_code/QUT_init_data_reduced.mp4'
-RESOLUTION = (360, 640, 3)
+from base_gui_oop import Gui
+from path_planner_1 import dummy_path_planner
+from colour_mask import colour_mask, check_grid_squares
+from example_code.ex_colour_mask import get_contour
+from example_code.ex_perspective_transform import perspective_tansform
 
 class PlaybackGui(Gui):
+    FILEPATH = 'example_code/car_view_test1.mp4' # Replace with the video address
+    # IMPORTANT: this class will scale the video resolution to 640X360, to reduce lag and the GUI screen fits,
+    # using self.vid_player.bind() in self.play_pause()
+    PLOT_GRAPH_EVERY_N_CYCLE = 20
     def __init__(self) -> None:
-        # init tkinter
-        self.root = tk.Tk()
-        self.root.title("Dual Video Feed")
-        self.root.protocol("WM_DELETE_WINDOW", self.close_threads)
-        # using tkinter Labels, Frames and Widgets
-        self.init_plot()
-        self.init_gui_elements()
+        self.vid_player = None # self.play_pause() also helps to initialise the video GUI element
+        super().__init__() # run tk.Tk.mainloop(), so this function blocks
 
-        self.cap = self.init_camera_feed(FILENAME)
+    def thread_entry(self):
+        pass # disable the thread in the parent class
 
-        thread = threading.Thread(target=self.thread_entry)
-        thread.start()
-
-        self.root.mainloop()
-        self.cap.release()
+    def init_camera_feed(self, address):
+        return None # disable the function in the parent class
     
-    def init_camera_feed(self, fileName):
-        cap = cv.VideoCapture(fileName)
-        if not cap.isOpened():
-            print("Failed to open video feed")
-            exit()
-
-# Load the cascade
-face_cascade = cv.CascadeClassifier("haarcascade_frontalface_default.xml")
-
-def init_camera_feed(cap):
-    # initialising the video feed
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
-    if not cap.isOpened():
-        print("Failed to open webcam")
-        exit()
-
-def init_plot():
-    ax.grid(True)
-    ax.axis('equal')
-    ax.set_xlim(-100, 100)  # Set x-axis limit
-    ax.set_ylim(0, 140)  # Set y-axis limit
-    ax.set_xlabel('X-axis (cm)')
-    ax.set_ylabel('Y-axis (cm)')
-    ax.set_title("Bird's eye view")
-    fig.tight_layout()
-
-# Define a function to update the video feeds
-def update_videos():
-    while True:
-        frame = vid_player.current_img()
-        if frame is None:
+    def get_next_video_frame(self):
+        frame = None
+        while frame is None:
             time.sleep(0.2)
-        else:
-            break
-    frame = np.array(frame)
-    frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
-    # Resize the frame to 1/4 of its original size
-    frame = cv.resize(frame, None, fx=0.25, fy=0.25, interpolation=cv.INTER_AREA)
-    
-    # Convert the frame to a format tkinter can use
+            frame = self.vid_player.current_img()
+        frame = np.array(frame)
+        frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
+        return frame
 
-    masked = np.copy(frame)
-    blueMask, yellowMask, purpleMask = colour_mask(masked)
-    blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
-    masked_pil = Image.fromarray(cv.cvtColor(masked, cv.COLOR_BGR2RGB))
+    def init_gui_elements(self):
+        super().init_gui_elements()
+        # video control buttons and seek bar
+        self.bottomFrame = tk.Frame(self.root)
+        self.play_pause_btn = tk.Button(self.bottomFrame, text="Play", command=self.play_pause)
+        self.skip_minus_5sec = tk.Button(self.bottomFrame, text="Skip -5 sec", command=lambda: self.skip(-5))
+        self.start_time = tk.Label(self.bottomFrame, text=str(datetime.timedelta(seconds=0)))
+        self.progress_value = tk.IntVar(self.bottomFrame)
+        self.progress_slider = tk.Scale(self.bottomFrame, variable=self.progress_value, from_=0, to=0, orient="horizontal", command=self.seek)
+        self.end_time = tk.Label(self.bottomFrame, text=str(datetime.timedelta(seconds=0)))
+        self.skip_plus_5sec = tk.Button(self.bottomFrame, text="Skip +5 sec", command=lambda: self.skip(5))
+        
+        # layout of the bottom frame
+        self.play_pause_btn.pack()
+        self.skip_minus_5sec.pack(side="left")
+        self.start_time.pack(side="left")
+        self.progress_slider.pack(side="left", fill="x", expand=True)
+        self.end_time.pack(side="left")
+        self.skip_plus_5sec.pack(side="left")
+        self.bottomFrame.pack(side='bottom', fill="x", expand=True)
 
-    video_label1.config(width=root.winfo_width() // 2)
-    vid_player.config(width=root.winfo_width() // 2)
-    label_width = max(video_label1.winfo_width() - 5, 1)  # Get the current width of video_label1
-    label_height = max(video_label1.winfo_height() - 5, 1) # Get the current height of video_label1
-    masked_resized = masked_pil.resize((label_width, label_height), Image.ANTIALIAS)
-    masked_imgtk = ImageTk.PhotoImage(image=masked_resized)
-
-    # Update both video labels with the same frame
-    video_label1.configure(image=masked_imgtk)
-    video_label1.imgtk = masked_imgtk
-    return blueContour, yellowContour, purpleContour
-
-def update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed):
-    blue.set_data(blueTrans[::, 0], blueTrans[::, 1])
-    yellow.set_data(yellowTrans[::, 0], yellowTrans[::, 1])
-    purple.set_data(purpleTrans[::, 0], purpleTrans[::, 1])
-    # Add the arrow in the corner
-    max_arrow_length = 2  # Fixed maximum length for the arrow
-    arrow_length = max_arrow_length * (speed / 5)  # Scale arrow length based on speed
-    
-    # global arrow
-    arrow.set_data(dx=arrow_length * np.cos(np.radians(direction)), dy=arrow_length * np.sin(np.radians(direction)))
-    text.set_text(f"Speed: {speed} @ {direction} deg")
-
-    # Draw the new plot
-    canvas.draw()
-
-def thread_entry():
-    while True:
-        for i in range(20):
-            blueContour, yellowContour, purpleContour = update_videos() 
+    def start_video_thread(self):
+        """is trigger when the play button is pressed.
+        Is it equivalent to the thread_entry() for parent class, Gui(), which triggers automatically without button press.
+        """
+        cycle = 0
+        while True:
+            frame = self.get_next_video_frame()
             # pre-recorded video is at 60fps. Hotspot connection can reach 37fps
-        direction = 45 # dummy value
-        speed = 255 # dummy value
-        # perspective transform (to get bird's eye/top view of the track)
-        blueTrans = perspective_tansform(blueContour.transpose())
-        yellowTrans = perspective_tansform(yellowContour.transpose())
-        purpleTrans = perspective_tansform(purpleContour.transpose())
-        # plot bird's eye view
-        update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
+            masked = np.copy(frame)
+            blueMask, yellowMask, purpleMask = colour_mask(masked)
+            blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
 
-def close_threads():
-    # may need to close thread in the future
-    root.destroy()
-    exit()
+            self.display_video_frame(masked, self.video_label1)
 
-# Initialize the main window
-root = tk.Tk()
-root.title("Dual Video Feed")
-root.protocol("WM_DELETE_WINDOW", close_threads)
+            # perspective transform (to get bird's eye/top view of the track)
+            blueTrans = perspective_tansform(blueContour.transpose())
+            yellowTrans = perspective_tansform(yellowContour.transpose())
+            purpleTrans = perspective_tansform(purpleContour.transpose())
+            # plot bird's eye view
+            direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
+            if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
+                # plot bird's eye view
+                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
+            cycle += 1
 
-# elements of the bird's eye graph
-ax:plt.Axes
-fig, ax = plt.subplots()
-blue = Line2D([], [], marker='o', linestyle='None', color='b')
-yellow = Line2D([], [], marker='o', linestyle='None', color='orange')
-purple = Line2D([], [], marker='o', linestyle='None', color='m')
-ax.add_line(blue)
-arrow = FancyArrow(0, 20, 0.5, 0.5, head_width=5, head_length=7, width=0.5, fc='red', ec='red')
-text = ax.text(0, 30, "Speed: @ deg")
-ax.add_patch(arrow)
-ax._request_autoscale_view()
-init_plot()
+    ### functionalities, trigger when a button or seek bar is clicked ###
+    def play_pause(self):
+        """ pauses and plays """
+        if self.vid_player is None: # the initialising the raw video feed when the button is FIRST clicked
+            # raw video feed
+            self.video_label2.pack_forget()
+            self.vid_player = TkinterVideo(scaled=True, master=self.topFrame, bg='blue')
+            self.vid_player.bind("<<Loaded>>", lambda e: e.widget.config(width=self.RESOLUTION[1], height=self.RESOLUTION[0]))
+            self.vid_player.pack(side='left')
+            self.vid_player.load(self.FILEPATH)
+            self.vid_player.play()
+            self.play_pause_btn["text"] = "Pause"
 
-# Video labels
-topFrame = tk.Frame(root)
-midFrame = tk.Frame(root)
-# create the bird's eye graph
-canvas = FigureCanvasTkAgg(fig, master=topFrame)
-canvas.draw()
-canvasWidget = canvas.get_tk_widget()
-canvasWidget.pack(side='left')
+            self.vid_player.bind("<<Duration>>", self.update_duration)
+            self.vid_player.bind("<<SecondChanged>>", self.update_scale)
+            self.vid_player.bind("<<Ended>>", self.video_ended)
 
-###########
-def load_video2():
-    pass
+            thread = threading.Thread(target=self.start_video_thread)
+            thread.start()
+            return
 
-vid_player = TkinterVideo(scaled=True, master=midFrame, bg='green')
-vid_player.pack(side='left', expand=True, fill="both")
-vid_player.load('example_code/car_view_test1.mp4')
-vid_player.play()
+        if self.vid_player.is_paused():
+            self.vid_player.play()
+            self.play_pause_btn["text"] = "Pause"
+        else:
+            self.vid_player.pause()
+            self.play_pause_btn["text"] = "Play"
+    
+    def seek(self, value):
+        """ used to seek a specific timeframe """
+        self.vid_player.seek(int(value))
 
-video_label1 = Label(midFrame, bg='blue')
-video_label1.pack(side='right', expand=True, fill="both")
+    def skip(self, value: int):
+        """ skip seconds """
+        self.vid_player.seek(int(self.progress_slider.get())+value)
+        self.progress_value.set(self.progress_slider.get() + value)
 
-bottomFrame = tk.Frame(root)
-play_pause_btn = tk.Button(bottomFrame, text="Play", command=load_video2)
-play_pause_btn.pack(side="left")
+    ### event handling ###
+    def video_ended(self, event):
+        """ handle video ended """
+        self.progress_slider.set(self.progress_slider["to"])
+        self.play_pause_btn["text"] = "Play"
+        self.progress_slider.set(0)
 
-skip_plus_5sec = tk.Button(bottomFrame, text="Skip -5 sec", command=lambda: load_video2)
-skip_plus_5sec.pack(side="left")
+    def update_duration(self, event):
+        """ updates the duration after finding the duration """
+        duration = self.vid_player.video_info()["duration"]
+        self.end_time["text"] = str(datetime.timedelta(seconds=duration))
+        self.progress_slider["to"] = duration
 
-start_time = tk.Label(bottomFrame, text=str(datetime.timedelta(seconds=0)))
-start_time.pack(side="left")
 
-progress_value = tk.IntVar(bottomFrame)
+    def update_scale(self, event):
+        """ updates the scale value """
+        self.progress_value.set(self.vid_player.current_duration())
 
-progress_slider = tk.Scale(bottomFrame, variable=progress_value, from_=0, to=0, orient="horizontal", command=load_video2)
-# progress_slider.bind("<ButtonRelease-1>", seek)
-progress_slider.pack(side="left", fill="x", expand=True)
-
-end_time = tk.Label(bottomFrame, text=str(datetime.timedelta(seconds=0)))
-end_time.pack(side="left")
-skip_plus_5sec = tk.Button(bottomFrame, text="Skip +5 sec", command=lambda: load_video2)
-skip_plus_5sec.pack(side="left")
-
-topFrame.pack(side='top')
-midFrame.pack(side='top', expand=True, fill="both")
-bottomFrame.pack(side='top')
-########
-
-# Start the video loop
-thread = threading.Thread(target=thread_entry)
-thread.start()
-time.sleep(0.5)
-
-# Run the application
-root.mainloop()
-
-# Release the video capture when the window is closed
-cv.destroyAllWindows()
+if __name__ == "__main__":
+    gui = PlaybackGui()

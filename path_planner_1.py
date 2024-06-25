@@ -102,3 +102,8 @@ def MAINTAIN_follow(frame, stepNum, leftPoints, rightPoints):
     carRange, carHeading = MAINTAIN_process_range_quartile(stepNum, angle, rangeQuartile, MAX_RANGE, isLeft)
     
     return carRange, carHeading
+
+def dummy_path_planner(blueTrans, yellowTrans, purpleTrans): # used for developing the GUI
+    angle = 45
+    speed = 255
+    return 45, 255
