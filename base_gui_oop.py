@@ -10,9 +10,6 @@ The GUI shows:
 
 this is some text
 """
-from colour_mask import colour_mask, check_grid_squares
-from example_code.ex_colour_mask import get_contour
-from example_code.ex_perspective_transform import perspective_tansform
 import cv2 as cv
 import tkinter as tk
 from tkinter import Label
@@ -24,14 +21,19 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrow
+
 from car_remote_control import Uart
 from path_planner_1 import dummy_path_planner
+from colour_mask import colour_mask, check_grid_squares
+from example_code.ex_colour_mask import get_contour
+from example_code.ex_perspective_transform import perspective_tansform
+from queue import Queue
 
 class Gui():
     ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
-    PLOT_GRAPH_EVERY_N_CYCLE = 20
+    PLOT_GRAPH_EVERY_N_CYCLE = 10
     def __init__(self) -> None:
         matplotlib.use('TkAgg')
         cv.CascadeClassifier("haarcascade_frontalface_default.xml") # Load the cascade
@@ -111,22 +113,40 @@ class Gui():
         # Draw the new plot
         self.canvas.draw()
 
-    def thread_entry(self):
+    def get_and_display_colour_contour(self, frame):
+        """Jack Lord can add his code here to integrate colour masking with the GUI
+        """
+        masked = np.copy(frame)
+        blueMask, yellowMask, purpleMask = colour_mask(masked)
+        blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
+
+        self.display_video_frame(masked, self.video_label1)
+        return blueContour, yellowContour, purpleContour
+
+    def thread_entry(self, update_video_label2=True):
+        """Updates the GUI with live video feed.
+        Automatically runs when the program starts and is called by __init__()
+
+        Args:
+            update_video_label2 (bool, optional): Set to True, if you want this function to update
+            video_label2 (raw video feed without any annotatation). Set to False, if another function
+            (e.g. TkinterVideo's play() used by the child class, PlaybackGui) updates video_label2, and you
+            need to avoid clashes between this function and the other function.
+            Defaults to True.
+        """
         cycle = 0
         while True:
             frame = self.get_next_video_frame()
-            # pre-recorded video is at 60fps. Hotspot connection can reach 37fps
-            masked = np.copy(frame)
-            blueMask, yellowMask, purpleMask = colour_mask(masked)
-            blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
-
-            self.display_video_frame(masked, self.video_label1)
-            self.display_video_frame(frame, self.video_label2)            
+            # pre-recorded video is at 60fps. Hotspot connection can reach 25fps (sometimes 37fps)
+            blueContour, yellowContour, purpleContour = self.get_and_display_colour_contour(frame)
+            if update_video_label2:
+                self.display_video_frame(frame, self.video_label2)
             # perspective transform (to get bird's eye/top view of the track)
             blueTrans = perspective_tansform(blueContour.transpose())
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
             direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
+            direction += 90 # for the path planner, 0 is up. But the graph has 0 pointing to the right.
             if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
                 # plot bird's eye view
                 self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)

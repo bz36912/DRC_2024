@@ -16,7 +16,7 @@ class PlaybackGui(Gui):
     FILEPATH = 'example_code/car_view_test1.mp4' # Replace with the video address
     # IMPORTANT: this class will scale the video resolution to 640X360, to reduce lag and the GUI screen fits,
     # using self.vid_player.bind() in self.play_pause()
-    PLOT_GRAPH_EVERY_N_CYCLE = 20
+    PLOT_GRAPH_EVERY_N_CYCLE = 10
     def __init__(self) -> None:
         self.vid_player = None # self.play_pause() also helps to initialise the video GUI element
         super().__init__() # run tk.Tk.mainloop(), so this function blocks
@@ -30,8 +30,9 @@ class PlaybackGui(Gui):
     def get_next_video_frame(self):
         frame = None
         while frame is None:
-            time.sleep(0.2)
+            time.sleep(0.01)
             frame = self.vid_player.current_img()
+            # print("current_img is None")
         frame = np.array(frame)
         frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
         return frame
@@ -61,26 +62,8 @@ class PlaybackGui(Gui):
         """is trigger when the play button is pressed.
         Is it equivalent to the thread_entry() for parent class, Gui(), which triggers automatically without button press.
         """
-        cycle = 0
-        while True:
-            frame = self.get_next_video_frame()
-            # pre-recorded video is at 60fps. Hotspot connection can reach 37fps
-            masked = np.copy(frame)
-            blueMask, yellowMask, purpleMask = colour_mask(masked)
-            blueContour, yellowContour, purpleContour = get_contour(masked, blueMask, yellowMask, purpleMask)
-
-            self.display_video_frame(masked, self.video_label1)
-
-            # perspective transform (to get bird's eye/top view of the track)
-            blueTrans = perspective_tansform(blueContour.transpose())
-            yellowTrans = perspective_tansform(yellowContour.transpose())
-            purpleTrans = perspective_tansform(purpleContour.transpose())
-            # plot bird's eye view
-            direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
-            if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
-                # plot bird's eye view
-                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
-            cycle += 1
+        super().thread_entry(update_video_label2=False)
+        # video_label2 is replaced by TkinterVideo's self.vid_player.play() function.
 
     ### functionalities, trigger when a button or seek bar is clicked ###
     def play_pause(self):

@@ -104,6 +104,6 @@ def MAINTAIN_follow(frame, stepNum, leftPoints, rightPoints):
     return carRange, carHeading
 
 def dummy_path_planner(blueTrans, yellowTrans, purpleTrans): # used for developing the GUI
-    angle = 45
-    speed = 255
-    return 45, 255
+    angle = np.random.randint(-90, 90)
+    speed = np.random.randint(0, 255)
+    return angle, speed
