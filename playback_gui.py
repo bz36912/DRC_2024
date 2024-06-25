@@ -19,13 +19,21 @@ class PlaybackGui(Gui):
     PLOT_GRAPH_EVERY_N_CYCLE = 10
     def __init__(self) -> None:
         self.vid_player = None # self.play_pause() also helps to initialise the video GUI element
-        super().__init__() # run tk.Tk.mainloop(), so this function blocks
-
-    def thread_entry(self):
-        pass # disable the thread in the parent class
+        super().__init__(startVideo=False) # run tk.Tk.mainloop(), so this function blocks
+        # startVideo=False, since we want the video to play after play button is pressed, rather than
+        # automatically play since the start of the program
 
     def init_camera_feed(self, address):
-        return None # disable the function in the parent class
+        """ disable the function in the parent class, since the video feed is coming 
+        from pre-recorded video using TkinterVideo instead of live video.
+
+        Args:
+            address (_type_): ignored
+
+        Returns:
+            None: None
+        """
+        return None
     
     def get_next_video_frame(self):
         frame = None
@@ -39,31 +47,22 @@ class PlaybackGui(Gui):
 
     def init_gui_elements(self):
         super().init_gui_elements()
-        # video control buttons and seek bar
-        self.bottomFrame = tk.Frame(self.root)
-        self.play_pause_btn = tk.Button(self.bottomFrame, text="Play", command=self.play_pause)
-        self.skip_minus_5sec = tk.Button(self.bottomFrame, text="Skip -5 sec", command=lambda: self.skip(-5))
-        self.start_time = tk.Label(self.bottomFrame, text=str(datetime.timedelta(seconds=0)))
-        self.progress_value = tk.IntVar(self.bottomFrame)
-        self.progress_slider = tk.Scale(self.bottomFrame, variable=self.progress_value, from_=0, to=0, orient="horizontal", command=self.seek)
-        self.end_time = tk.Label(self.bottomFrame, text=str(datetime.timedelta(seconds=0)))
-        self.skip_plus_5sec = tk.Button(self.bottomFrame, text="Skip +5 sec", command=lambda: self.skip(5))
+        # create video control buttons and seek bar
+        self.play_pause_btn = tk.Button(self.secondFrame, text="Play", command=self.play_pause)
+        self.skip_minus_5sec = tk.Button(self.secondFrame, text="Skip -5 sec", command=lambda: self.skip(-5))
+        self.start_time = tk.Label(self.secondFrame, text=str(datetime.timedelta(seconds=0)))
+        self.progress_value = tk.IntVar(self.secondFrame)
+        self.progress_slider = tk.Scale(self.secondFrame, variable=self.progress_value, from_=0, to=0, orient="horizontal", command=self.seek)
+        self.end_time = tk.Label(self.secondFrame, text=str(datetime.timedelta(seconds=0)))
+        self.skip_plus_5sec = tk.Button(self.secondFrame, text="Skip +5 sec", command=lambda: self.skip(5))
         
-        # layout of the bottom frame
+        # layout of video control buttons and seek bar
         self.play_pause_btn.pack()
         self.skip_minus_5sec.pack(side="left")
         self.start_time.pack(side="left")
         self.progress_slider.pack(side="left", fill="x", expand=True)
         self.end_time.pack(side="left")
         self.skip_plus_5sec.pack(side="left")
-        self.bottomFrame.pack(side='bottom', fill="x", expand=True)
-
-    def start_video_thread(self):
-        """is trigger when the play button is pressed.
-        Is it equivalent to the thread_entry() for parent class, Gui(), which triggers automatically without button press.
-        """
-        super().thread_entry(update_video_label2=False)
-        # video_label2 is replaced by TkinterVideo's self.vid_player.play() function.
 
     ### functionalities, trigger when a button or seek bar is clicked ###
     def play_pause(self):
@@ -82,7 +81,7 @@ class PlaybackGui(Gui):
             self.vid_player.bind("<<SecondChanged>>", self.update_scale)
             self.vid_player.bind("<<Ended>>", self.video_ended)
 
-            thread = threading.Thread(target=self.start_video_thread)
+            thread = threading.Thread(target=self.start_video_thread_entry)
             thread.start()
             return
 

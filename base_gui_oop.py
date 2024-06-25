@@ -33,8 +33,15 @@ class Gui():
     ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
-    PLOT_GRAPH_EVERY_N_CYCLE = 10
-    def __init__(self) -> None:
+    PLOT_GRAPH_EVERY_N_CYCLE = 20
+    def __init__(self, startVideo=True) -> None:
+        """Starts the GUI
+
+        Args:
+            startVideo (bool, optional): Set to True, if you want the video to start playing
+            when the program starts. 
+            Defaults to True.
+        """
         matplotlib.use('TkAgg')
         cv.CascadeClassifier("haarcascade_frontalface_default.xml") # Load the cascade
         # init tkinter
@@ -47,8 +54,9 @@ class Gui():
 
         self.cap = self.init_camera_feed(self.ADDRESS)
         
-        thread = threading.Thread(target=self.thread_entry)
-        thread.start()
+        if startVideo:
+            thread = threading.Thread(target=self.start_video_thread_entry)
+            thread.start()
 
         self.root.mainloop()
         if self.cap is not None:
@@ -123,9 +131,8 @@ class Gui():
         self.display_video_frame(masked, self.video_label1)
         return blueContour, yellowContour, purpleContour
 
-    def thread_entry(self, update_video_label2=True):
-        """Updates the GUI with live video feed.
-        Automatically runs when the program starts and is called by __init__()
+    def start_video_thread_entry(self, update_video_label2=True):
+        """Updates the GUI with a video feed.
 
         Args:
             update_video_label2 (bool, optional): Set to True, if you want this function to update
