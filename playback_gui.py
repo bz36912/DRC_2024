@@ -13,10 +13,11 @@ from example_code.ex_colour_mask import get_contour
 from example_code.ex_perspective_transform import perspective_tansform
 
 class PlaybackGui(Gui):
-    FILEPATH = 'example_code/car_view_test1.mp4' # Replace with the video address
+    # FILEPATH = 'example_code/car_view_test1.mp4' # Replace with the video address
+    FILEPATH = 'dash_cam/remote_ctrl_3.mp4'
     # IMPORTANT: this class will scale the video resolution to 640X360, to reduce lag and the GUI screen fits,
     # using self.vid_player.bind() in self.play_pause()
-    PLOT_GRAPH_EVERY_N_CYCLE = 10
+    PLOT_GRAPH_EVERY_N_CYCLE = 1
     def __init__(self) -> None:
         self.vid_player = None # self.play_pause() also helps to initialise the video GUI element
         super().__init__(startVideo=False) # run tk.Tk.mainloop(), so this function blocks

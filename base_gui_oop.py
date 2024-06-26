@@ -161,11 +161,6 @@ class Gui():
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
 
-            # # dummy data
-            # blueTrans = np.random.randint(0, 50, size=blueTrans.size).reshape(blueTrans.shape)
-            # yellowTrans = np.random.randint(0, 50, size=yellowTrans.size).reshape(yellowTrans.shape)
-            # purpleTrans = np.random.randint(0, 50, size=purpleTrans.size).reshape(purpleTrans.shape)
-
             direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
             if self.uart is not None:
                 self.uart.send_command(direction, speed)
