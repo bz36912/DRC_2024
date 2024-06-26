@@ -150,7 +150,8 @@ void Car::parse_cmd_string(String cmdStr) {
     this->targetAngle = gyro.boundedAngle(this->targetAngle + atoi(changeInDir));
   }
   if (maxPWM != NULL) {
-    this->maxPWM = atoi(maxPWM);
+    this->maxPWM = min(atoi(maxPWM), MAX_SPEED);
+    this->maxPWM = max(this->maxPWM, MIN_SPEED);
   }
 }
 
@@ -164,8 +165,11 @@ void Car::getCommand() {
       Serial.print("#\n"); // echo back to tell the laptop that connection is still active
     } else if (line.charAt(0) == '/') { // setting direction and speed to set values
       this->parse_cmd_string(line);
-      PRINT_VAR("cmd, new maxPWM", this->maxPWM);
-      PRINT_VAR("cmd, targetAngle", this->targetAngle);
+      PRINT_VAR("PWM", String(this->maxPWM));
+      PRINT_VAR("angle", String(this->targetAngle));
+
+      this->lastConnectionTime = millis();
+      Serial.print("#\n");
     } else if (line == "w") { // accelerate
       this->maxPWM = min(MAX_SPEED, this->maxPWM + 20);
       PRINT_VAR("ACcelerate, new maxPWM", this->maxPWM);

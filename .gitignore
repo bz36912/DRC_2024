@@ -1,3 +1,5 @@
 **/*.DS_Store
 **/~*.docx
 **/~*.pptx
+**/*.pyc
+test.py

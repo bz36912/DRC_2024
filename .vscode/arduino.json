@@ -1,5 +1,6 @@
 {
     "configuration": "cpu=atmega328",
     "board": "arduino:avr:diecimila",
-    "sketch": "DRC_car_firmware\\DRC_car_firmware.ino"
+    "sketch": "DRC_car_firmware\\DRC_car_firmware.ino",
+    "port": "COM8"
 }

@@ -1,4 +1,12 @@
-import cv2
+import cv2 as cv
+
+def init_camera_feed(cap):
+    # initialising the video feed
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+    if not cap.isOpened():
+        print("Failed to open webcam")
+        exit()
 
 # Function to handle mouse events
 def mouse_click(event, x, y, flags, param):
@@ -6,9 +14,13 @@ def mouse_click(event, x, y, flags, param):
         print("Clicked at (x={}, y={})".format(x, y))
 
 # Load the image
-image = cv2.imread("./IMG_20240616_144315.jpg")
-# rotate image 180 degrees
-image = cv2.resize(image,(0,0),fx=0.35,fy=0.35)
+video = cv.VideoCapture('VID1.mp4')
+init_camera_feed(video)
+_, frame = video.read()
+if frame is None:
+    print("bingbong")
+    exit()
+
 # Check if the image was loaded successfully
 if image is None:
     print("Error: Could not load image.")
