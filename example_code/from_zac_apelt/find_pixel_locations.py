@@ -1,12 +1,5 @@
-import cv2 as cv
-
-def init_camera_feed(cap):
-    # initialising the video feed
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
-    if not cap.isOpened():
-        print("Failed to open webcam")
-        exit()
+import cv2
+WIDTH = 29.5
 
 # Function to handle mouse events
 def mouse_click(event, x, y, flags, param):
@@ -14,12 +7,7 @@ def mouse_click(event, x, y, flags, param):
         print("Clicked at (x={}, y={})".format(x, y))
 
 # Load the image
-video = cv.VideoCapture('VID1.mp4')
-init_camera_feed(video)
-_, frame = video.read()
-if frame is None:
-    print("bingbong")
-    exit()
+image = cv2.imread('./30cm.jpg',cv2.IMREAD_COLOR)
 
 # Check if the image was loaded successfully
 if image is None:
