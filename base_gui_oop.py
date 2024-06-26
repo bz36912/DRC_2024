@@ -30,7 +30,8 @@ from example_code.ex_perspective_transform import perspective_tansform
 from queue import Queue
 
 class Gui():
-    ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
+    # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
+    ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
     PLOT_GRAPH_EVERY_N_CYCLE = 20
@@ -103,6 +104,7 @@ class Gui():
         if frame is None:
             print("end of video feed")
             exit()
+        frame = cv.resize(frame, (0, 0), fx=0.5, fy=0.5)
         assert frame.shape == self.RESOLUTION, "ERROR in Gui::Gui: video resolution is incorrect."
         return frame
     
