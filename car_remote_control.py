@@ -4,17 +4,16 @@ import threading
 import time
 
 class Uart():
-    def __init__(self) -> None:
+    def __init__(self, port) -> None:
         self.terminateFlag = False
-        self.ser = self._uart_init()
+        self.ser = self._uart_init(port)
         send_key_thread = threading.Thread(target=self._send_key_command_thread)
         send_key_thread.start()
         checkConnectionThread = threading.Thread(target=self._connection_thread_entry)
         checkConnectionThread.start()
+        self.enableSelfDriving = False
 
-    def _uart_init(self) -> serial.Serial:
-        port = "/dev/tty.REMOTE_CTRL"
-        # port = "COM10"
+    def _uart_init(self, port:str) -> serial.Serial:
         baud = 115200
         ser = serial.Serial(port, baud, timeout=0.1)
         print("Connected to Arduino port: " + port)
@@ -30,8 +29,11 @@ class Uart():
                 self.terminateFlag = True
                 print("exiting the _send_key_command_thread()")
                 exit()
+            elif key == "o": # enable self driving
+                self.enableSelfDriving = True
             elif key != oldKey or time.time() - lastKeyPressTime > 0.2:
                 oldKey = key
+                self.enableSelfDriving = False
                 lastKeyPressTime = time.time()
                 key_in_bytes = bytes(key + "\n", 'utf-8')
                 print(key_in_bytes, type(key_in_bytes))
@@ -43,14 +45,22 @@ class Uart():
             self.ser.write(bytes("#\n", 'utf-8'))
             time.sleep(0.45)
             num_missed_ACK += 1
+
+            # for i in range(50):
+            #     line = self.ser.readline().decode().strip("\n\r")
+            #     if line == "":
+            #         break
+            #     else:
+            #         print(line)
+
             lines = self.ser.readlines()
             for line in lines:
                 line = line.decode('utf-8').strip(" \n\r")
                 if line == '#': # '#' is echoed back so UART is still connected
                     num_missed_ACK = 0
                 else:
-                    print(line)                
-            
+                    print(line)
+ 
             if num_missed_ACK % 20 == 1:
                 print(num_missed_ACK, "no ACK")
             
@@ -59,11 +69,14 @@ class Uart():
                 exit()
 
     def send_command(self, direction:int, maxPWM:int=-1):
-        self.ser.write(bytes(f"/ {direction} {maxPWM}\n", 'utf-8'))
+        if self.enableSelfDriving:
+            self.ser.write(bytes(f"/ {direction} {maxPWM}\n", 'utf-8'))
 
 if __name__ == "__main__":
     print("start of program")
-    uart = Uart()
+    port = "/dev/tty.REMOTE_CTRL"
+    # port = "COM10"
+    uart = Uart(port)
 
     # testing uart
     # time.sleep(3)

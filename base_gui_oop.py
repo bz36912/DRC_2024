@@ -54,7 +54,13 @@ class Gui():
 
         self.cap = self.init_camera_feed(self.ADDRESS)
         
+        self.uart = None
         if startVideo:
+            try:
+                self.uart = Uart("COM16")
+                self.display_uart_connection(True)
+            except:
+                self.display_uart_connection(False)
             thread = threading.Thread(target=self.start_video_thread_entry)
             thread.start()
 
@@ -152,11 +158,22 @@ class Gui():
             blueTrans = perspective_tansform(blueContour.transpose())
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
+
+            # # dummy data
+            # blueTrans = np.random.randint(0, 50, size=blueTrans.size).reshape(blueTrans.shape)
+            # yellowTrans = np.random.randint(0, 50, size=yellowTrans.size).reshape(yellowTrans.shape)
+            # purpleTrans = np.random.randint(0, 50, size=purpleTrans.size).reshape(purpleTrans.shape)
+
             direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
-            direction += 90 # for the path planner, 0 is up. But the graph has 0 pointing to the right.
+            if self.uart is not None:
+                self.uart.send_command(direction, speed)
+                if self.uart.terminateFlag == True:
+                    print("exiting the start_video_thread_entry()")
+                    exit() # end the thread
+            dis_direction = direction + 90 # for the path planner, 0 is up. But the graph has 0 pointing to the right.
             if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
                 # plot bird's eye view
-                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
+                self.update_plot(blueTrans, yellowTrans, purpleTrans, dis_direction, speed)
             cycle += 1
 
     def close_threads(self):
@@ -184,6 +201,13 @@ class Gui():
         self.topFrame.pack(side='top')
         self.topFrame.config(height=self.RESOLUTION[0])
         self.secondFrame.pack(side='top', expand=True, fill="both")
+    
+    def display_uart_connection(self, connected:bool):
+        if connected:
+            self.connectionLabel = Label(self.secondFrame, bg='green', text='UART: Connected at Start of Program')
+        else:
+            self.connectionLabel = Label(self.secondFrame, bg='red', text='UART: Not Connected')
+        self.connectionLabel.pack(side='bottom')
 
 if __name__ == "__main__":
     gui = Gui()
