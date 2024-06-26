@@ -7,7 +7,8 @@ def mouse_click(event, x, y, flags, param):
         print("Clicked at (x={}, y={})".format(x, y))
 
 # Load the image
-image = cv2.imread('./30cm.jpg',cv2.IMREAD_COLOR)
+image = cv2.imread('./30cm_right.jpg',cv2.IMREAD_COLOR)
+image = cv2.flip(image, 1)
 
 # Check if the image was loaded successfully
 if image is None:
