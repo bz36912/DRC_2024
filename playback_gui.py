@@ -7,14 +7,10 @@ import datetime
 from tkVideoPlayer import TkinterVideo
 
 from base_gui_oop import Gui
-from path_planner_1 import dummy_path_planner
-from colour_mask import colour_mask, check_grid_squares
-from example_code.ex_colour_mask import get_contour
-from example_code.ex_perspective_transform import perspective_tansform
 
 class PlaybackGui(Gui):
     # FILEPATH = 'example_code/car_view_test1.mp4' # Replace with the video address
-    FILEPATH = 'dash_cam/remote_ctrl_3.mp4'
+    FILEPATH = 'dash_cam/remote_GP_2.mp4'
     # IMPORTANT: this class will scale the video resolution to 640X360, to reduce lag and the GUI screen fits,
     # using self.vid_player.bind() in self.play_pause()
     PLOT_GRAPH_EVERY_N_CYCLE = 1

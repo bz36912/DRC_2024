@@ -24,14 +24,16 @@ from matplotlib.patches import FancyArrow
 
 from car_remote_control import Uart
 from path_planner_1 import dummy_path_planner
-from colour_mask import colour_mask, check_grid_squares
+from path_planner_2 import simple_diff_path_planner
+from colour_mask_indoor import colour_mask
 from example_code.ex_colour_mask import get_contour
 from example_code.ex_perspective_transform import perspective_tansform
 from queue import Queue
 
 class Gui():
     # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
-    ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
+    # ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
+    ADDRESS = "https://192.168.202.91:8080//video"
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
     PLOT_GRAPH_EVERY_N_CYCLE = 20
@@ -58,7 +60,8 @@ class Gui():
         self.uart = None
         if startVideo:
             try:
-                self.uart = Uart("COM16")
+                # self.uart = Uart("COM16")
+                self.uart = Uart("/dev/tty.REMOTE_CTRL")
                 self.display_uart_connection(True)
             except:
                 self.display_uart_connection(False)
@@ -92,12 +95,16 @@ class Gui():
         # format the axes and graph
         self.ax.grid(True)
         self.ax.axis('equal')
-        self.ax.set_xlim(-100, 100)  # Set x-axis limit
-        self.ax.set_ylim(-20, 120)  # Set y-axis limit
+        self.ax.set_xlim(-150, 150)  # Set x-axis limit
+        self.ax.set_ylim(-20, 200)  # Set y-axis limit
         self.ax.set_xlabel('X-axis (cm)')
         self.ax.set_ylabel('Y-axis (cm)')
         self.ax.set_title("Bird's eye view")
         self.fig.tight_layout()
+
+        # plot reference
+        self.ax.plot((30, 30), (-20, 120), c='g')
+        self.ax.plot((-30, -30), (-20, 120), c='g')
 
     def get_next_video_frame(self):
         _, frame = self.cap.read()
@@ -123,7 +130,8 @@ class Gui():
         # Add the arrow onto the graph indicate the decison of the path planner
         max_arrow_length = 2  # Fixed maximum length for the arrow
         arrow_length = max_arrow_length * (speed / 5)  # Scale arrow length based on speed
-        self.arrow.set_data(dx=arrow_length * np.cos(np.radians(direction)), dy=arrow_length * np.sin(np.radians(direction)))
+        dis_direction = direction + 90 # for the path planner, 0 is up. But the graph has 0 pointing to the right.
+        self.arrow.set_data(dx=arrow_length * np.cos(np.radians(dis_direction)), dy=arrow_length * np.sin(np.radians(dis_direction)))
         self.text.set_text(f"Speed: {speed} @ {direction} deg")
 
         # Draw the new plot
@@ -161,16 +169,16 @@ class Gui():
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
 
-            direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
+            # direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
+            direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans)
             if self.uart is not None:
                 self.uart.send_command(direction, speed)
                 if self.uart.terminateFlag == True:
                     print("exiting the start_video_thread_entry()")
                     exit() # end the thread
-            dis_direction = direction + 90 # for the path planner, 0 is up. But the graph has 0 pointing to the right.
             if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
                 # plot bird's eye view
-                self.update_plot(blueTrans, yellowTrans, purpleTrans, dis_direction, speed)
+                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
             cycle += 1
 
     def close_threads(self):
