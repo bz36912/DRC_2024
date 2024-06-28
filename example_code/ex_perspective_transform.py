@@ -23,30 +23,38 @@ def perspective_tansform(oldXY):
     #         [ 1.36469318e-04, -3.57086222e-02,  1.00000000e+00]])
 
     # 50cm
-    M = np.array([[-7.58054875e-01, 3.32676396e-01, 1.15693471e+02],
-            [ 2.19673733e-01,3.14465915e-01,-4.95921012e+02],
-            [ 1.46091182e-03,-6.97129355e-02,1.00000000e+00]])
+    # M = np.array([[-7.58054875e-01, 3.32676396e-01, 1.15693471e+02],
+    #         [ 2.19673733e-01,3.14465915e-01,-4.95921012e+02],
+    #         [ 1.46091182e-03,-6.97129355e-02,1.00000000e+00]])
     # M = np.array([[ 3.54535414e-01,  2.10665971e-01, -1.91670066e+02],
     #    [-1.63719927e-01,  6.22979284e-02, -1.39760417e+02],
     #    [-4.71241936e-04, -3.61147222e-02,  1.00000000e+00]])
+    # M = np.array([[ 2.57209401e-01,  1.65074690e-01, -1.33126979e+02],
+    #    [-1.07922755e-01, -4.71710524e-02, -8.84425078e+01],
+    #    [-8.29407028e-04, -2.79673986e-02,  1.00000000e+00]])
+    #new 30cm 
+    M = np.array([[-5.71185135e-01,  3.38201725e-01,  3.12648705e+00],
+       [ 3.36647916e-01, -1.06567803e-01, -3.85482094e+02],
+       [ 2.09993538e-03, -6.32431348e-02,  1.00000000e+00]])
     
-    multiplier = np.array([[-1., -1., -1.],
-                [1., 1., 1.],
-                [1., 1., 1.]])
-    newM = M * multiplier
+    # multiplier = np.array([[-1., -1., -1.],
+    #             [1., 1., 1.],
+    #             [1., 1., 1.]])
+    # newM = M * multiplier
     # P = np.array([oldX, oldY, np.ones_like(oldX)])
     rowOfOnes = np.ones(shape=(1, oldXY.shape[1]))
     P = np.concatenate((oldXY, rowOfOnes), axis=0)
     X = 0
     Y = 1
     C = 2
-    transformed = np.matmul(newM, P)
+
+    transformed = np.matmul(M, P)
     transformedXY:np.array = transformed[[X, Y]] / transformed[C]
 
     return transformedXY.transpose()
 
 if __name__ == "__main__":
-    oldXY = np.array([[100, 150], [2, 4], [3, 6], [4, 8], [5, 10], [6, 12]])
+    oldXY = np.array([[395,191],[128,163],[255,115],[438,124]])
     oldX = oldXY[::, 0]
     oldY = oldXY[::, 1]
     # in the comp the oldXY will come from Jack Lord's colour mask step
@@ -60,7 +68,7 @@ if __name__ == "__main__":
     print("xy: ", transformedXY)
     # graphing the points
     fig, ax = plt.subplots()
-    ax.plot(oldXY[::, 0] * 10, oldXY[::, 1] * 10, "*b")
+    # ax.plot(oldXY[::, 0], oldXY[::, 1], "*b")
     # the * 10 is to adjust the scale, so the two plot can be compared on the same graph. 
     # It is JUST for visualisation. We want oldX and oldY, not the 10X version of them.
     ax.plot(transformedXY[::, 0], transformedXY[::, 1], "*g")
