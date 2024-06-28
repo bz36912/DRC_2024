@@ -70,6 +70,7 @@ class Uart():
 
     def send_command(self, direction:int, maxPWM:int=-1):
         if self.enableSelfDriving:
+            # print("comman sent: /", direction, maxPWM)
             self.ser.write(bytes(f"/ {direction} {maxPWM}\n", 'utf-8'))
 
 if __name__ == "__main__":
