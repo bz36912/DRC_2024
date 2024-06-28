@@ -39,13 +39,13 @@ def colour_mask(frame):
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     #lower bound and upper bound for blue
-    lowerBlue = np.array([50, 70, 180])
+    lowerBlue = np.array([50, 30, 180])
     upperBlue = np.array([130, 255, 255])
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([30, 3, 190])
-    upperYellow = np.array([60, 255, 255])
+    lowerYellow = np.array([30, 3, 200])
+    upperYellow = np.array([40, 255, 255])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
     #lower bound and upper bound for purple color
@@ -270,22 +270,23 @@ def draw_contour(mask, colour, frame):
 
         rect = cv.minAreaRect(contour)  # Get the minimum area rectangle
         box = cv.boxPoints(rect)
-        box = np.int0(box)
+        #box = np.int0(box)
         # Calculate width and height of the rotated rectangle
         width = rect[1][0]
         height = rect[1][1]
         aspect_ratio = float(width) / height if height != 0 else 0
         perimeter_area_ratio = 10* perimeter/area  if area !=0 else 0 # we want this to be lower
 
-        cv.putText(frame, f"A: {perimeter_area_ratio:.2f}", (int(rect[0][0]), int(rect[0][1])), 
-                        cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        if perimeter_area_ratio > 0.65: #only include large areas of the colour
+        #cv.putText(frame, f"A: {perimeter_area_ratio:.2f}", (int(rect[0][0]), int(rect[0][1])), 
+        #                cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        if perimeter_area_ratio > 0.7 and not (0.85 < aspect_ratio < 1.15) and area > 40: #only include large areas of the colour
             contourArray = np.concatenate((contourArray, contour.reshape(-1, 2)))
             cv.drawContours(frame, [contour], 0, COMPLEMENTARY[colour], 2) 
             # Ib will use cv.drawContours to display the countour on GUI for debugging
-        else:
+        
+        #else:
             #contourArray = np.concatenate((contourArray, np.squeeze(contour)))
-            cv.drawContours(frame, [contour], 0, (0, 0, 255), 2) 
+        #    cv.drawContours(frame, [contour], 0, (0, 0, 255), 2) 
     return contourArray # Bryce wants this for his perspective transform part. The array's shape is N X 2
     # N is the number of points that defines the outline. The first coloum is x and second is y-coordinate.
 
@@ -300,7 +301,7 @@ if __name__ == "__main__":
     # cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
     # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
     # cap = cv.VideoCapture('example_code\AEB_data2.mp4')
-    cap = cv.VideoCapture('example_code/2023_video_1.mp4')
+    cap = cv.VideoCapture('dash_cam/remote_ctrl_1.mp4')
     init_camera_feed(cap)
 
     while True:
@@ -328,7 +329,7 @@ if __name__ == "__main__":
         check_grid_squares4(frame, purpleMask, PURPLE)
         '''
         height, width = frame.shape[:2]
-        #frame = cv.resize(frame, (width//2, height//2), interpolation=cv.INTER_AREA)
+        frame = cv.resize(frame, (width*2, height*2), interpolation=cv.INTER_AREA)
         cv.imshow('frame with contour', frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'): # press q to close the window and program
