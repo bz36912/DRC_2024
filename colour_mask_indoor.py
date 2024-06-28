@@ -301,7 +301,7 @@ if __name__ == "__main__":
     # cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
     # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
     # cap = cv.VideoCapture('example_code\AEB_data2.mp4')
-    cap = cv.VideoCapture('dash_cam/remote_GP_1.mp4')
+    cap = cv.VideoCapture('dash_cam/remote_GP_2.mp4')
     init_camera_feed(cap)
 
     delay = 15
