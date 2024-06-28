@@ -8,6 +8,7 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 import tkVideoPlayer as tk
+from PIL import Image, ImageOps
 
 #### CONSTANTS
 GREEN = (0, 255, 0)  # in BGR.
@@ -329,7 +330,16 @@ if __name__ == "__main__":
         check_grid_squares4(frame, purpleMask, PURPLE)
         '''
         height, width = frame.shape[:2]
+        
         frame = cv.resize(frame, (width*2, height*2), interpolation=cv.INTER_AREA)
+        
+        
+        # Posterisation (this section can be commented out if we don't want it)
+        frame_image = Image.fromarray(frame)
+        frame_image = ImageOps.posterize(frame_image, bits=3)
+        frame = np.array(frame_image)
+        
+        
         cv.imshow('frame with contour', frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'): # press q to close the window and program
