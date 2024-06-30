@@ -75,7 +75,8 @@ class Uart():
 
 if __name__ == "__main__":
     print("start of program")
-    port = "/dev/tty.REMOTE_CTRL"
+    # port = "/dev/tty.REMOTE_CTRL"
+    port = "/dev/tty.HC-05"
     # port = "COM10"
     uart = Uart(port)
 

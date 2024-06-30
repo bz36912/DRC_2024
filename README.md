@@ -9,6 +9,11 @@ Don't overwrite the example code. Write your code in the relevant files in the r
 you need to change the explorer/current directory to /example_code
 On vsCode, go File/Open Folder, then select example_code
 
-bingbong
-Hello World
-Test from JRGL's PC
+## Notes on power bank
+Silver: 9V output is broken.
+    Does not have issues with sleeping too early
+Blue: Can supply 9V but not 100% consistent, so takes multiple attempts to get into 9V
+    Keeps on sleeping (so use it to power the motors, which draws substantial current)
+    USB port is a bit loose, so the connection is not perfect.
+Black: 9V works and is currently the most consistent.
+    The power button cannot be pressed when drawing power.
