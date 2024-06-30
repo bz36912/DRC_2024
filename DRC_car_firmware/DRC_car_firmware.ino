@@ -147,7 +147,7 @@ void Car::parse_cmd_string(String cmdStr) {
   char* changeInDir = strtok(NULL, " ");
   char* maxPWM = strtok(NULL, " ");
   if (changeInDir != NULL) {
-    this->targetAngle = gyro.boundedAngle(this->targetAngle + atoi(changeInDir));
+    this->targetAngle = gyro.boundedAngle(this->gyro.getAngle() + atoi(changeInDir));
   }
   if (maxPWM != NULL) {
     this->maxPWM = min(atoi(maxPWM), MAX_SPEED);
@@ -170,6 +170,7 @@ void Car::getCommand() {
 
       this->lastConnectionTime = millis();
       Serial.print("#\n");
+      this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "w") { // accelerate
       this->maxPWM = min(MAX_SPEED, this->maxPWM + 20);
       PRINT_VAR("ACcelerate, new maxPWM", this->maxPWM);
