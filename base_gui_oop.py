@@ -25,8 +25,9 @@ from matplotlib.patches import FancyArrow
 from car_remote_control import Uart
 from path_planner_1 import dummy_path_planner
 from path_planner_2 import simple_diff_path_planner
-from colour_mask_indoor import colour_mask
-from example_code.ex_colour_mask import get_contour
+from path_planner_3 import weight_average_path_planner, proximity_path_planner
+from colour_mask_indoor import colour_mask, get_contour
+# from example_code.ex_colour_mask import get_contour
 from example_code.ex_perspective_transform import perspective_tansform
 from queue import Queue
 
@@ -103,8 +104,8 @@ class Gui():
         self.fig.tight_layout()
 
         # plot reference
-        self.ax.plot((30, 30), (-20, 120), c='g')
-        self.ax.plot((-30, -30), (-20, 120), c='g')
+        self.ax.plot((30, 30), (-20, 200), c='g')
+        self.ax.plot((-30, -30), (-20, 200), c='g')
 
     def get_next_video_frame(self):
         _, frame = self.cap.read()
@@ -170,7 +171,8 @@ class Gui():
             purpleTrans = perspective_tansform(purpleContour.transpose())
 
             # direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
-            direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans)
+            # direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans)
+            direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
             if self.uart is not None:
                 self.uart.send_command(direction, speed)
                 if self.uart.terminateFlag == True:
