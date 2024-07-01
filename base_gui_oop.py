@@ -174,7 +174,8 @@ class Gui():
             direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
             #direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
             if self.uart is not None:
-                self.uart.send_command(direction, speed)
+                if speed > 0:
+                    self.uart.send_command(direction, speed)
                 if self.uart.terminateFlag == True:
                     print("exiting the start_video_thread_entry()")
                     exit() # end the thread
