@@ -34,7 +34,7 @@ from queue import Queue
 class Gui():
     # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
     # ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
-    ADDRESS = "https://192.168.202.91:8080//video"
+    ADDRESS = "https://192.168.80.91:8080//video"
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
     PLOT_GRAPH_EVERY_N_CYCLE = 20
@@ -61,8 +61,8 @@ class Gui():
         self.uart = None
         if startVideo:
             try:
-                # self.uart = Uart("COM16")
-                self.uart = Uart("/dev/tty.REMOTE_CTRL")
+                self.uart = Uart("COM4")
+                # self.uart = Uart("/dev/tty.REMOTE_CTRL")
                 self.display_uart_connection(True)
             except:
                 self.display_uart_connection(False)
@@ -171,8 +171,8 @@ class Gui():
             purpleTrans = perspective_tansform(purpleContour.transpose())
 
             # direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
-            # direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans)
-            direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
+            direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
+            #direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
             if self.uart is not None:
                 self.uart.send_command(direction, speed)
                 if self.uart.terminateFlag == True:
