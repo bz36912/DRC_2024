@@ -13,7 +13,7 @@ def simple_diff_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpl
         return 0, 130
 
     if rightBlue.size > leftYellow.size: # follow the blue
-        blueMiddle = rightBlue[rightBlue[::,0] < 30]
+        blueMiddle = rightBlue[rightBlue[::,0] < 40]
         x = rightBlue[::,0]
         if blueMiddle.size > 5:
             angle = blueMiddle.size/5
@@ -27,10 +27,10 @@ def simple_diff_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpl
     else: # follow the yellow
         # refX = -OPTIMAL_SIDE_DISTANCE
         # x, y = leftYellow[::, 0], leftYellow[::, 1]
-        yellowMiddle = leftYellow[leftYellow[::,0] > -30]
+        yellowMiddle = leftYellow[leftYellow[::,0] > -40]
         x = leftYellow[::,0]
         if yellowMiddle.size > 5:
-            angle = -yellowMiddle.size/5
+            angle = -yellowMiddle.size/2
         # refX = OPTIMAL_SIDE_DISTANCE
         # x, y = rightBlue[::, 0], rightBlue[::, 1]
         elif np.mean(x) < -50:
@@ -44,6 +44,6 @@ def simple_diff_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpl
     # averageDiff = np.mean(diff)
     # angle = -averageDiffq
     # speed = 150
-    angle = min(80, max(-80, angle / 50))
+    angle = min(80, max(-80, angle/5))
     speed = 130
     return angle, speed
