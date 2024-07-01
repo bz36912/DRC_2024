@@ -92,6 +92,10 @@ void Car::adjustMotion() {
     case PAUSED_STATE:
     this->motor.stopCar(); //remain stationary
     break;
+    case SWING_LEFT_STATE:
+    break;
+    case SWING_RIGHT_STATE:
+    break;
     default:
     print_var_full("unrecognised state", this->state, "Car::adjustMotion");
   }
@@ -181,20 +185,26 @@ void Car::getCommand() {
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "a") { // turn left
       this->setState(DRIVE_FORWARD_STATE);
-      this->targetAngle = gyro.boundedAngle(this->targetAngle + 30);
+      this->targetAngle = gyro.boundedAngle(this->gyro.getAngle() + 30);
       PRINT_VAR("turn left, target", this->targetAngle);
     } else if (line == "d") { //turn right
       this->setState(DRIVE_FORWARD_STATE);
-      this->targetAngle = gyro.boundedAngle(this->targetAngle - 30);
+      this->targetAngle = gyro.boundedAngle(this->gyro.getAngle() - 30);
       PRINT_VAR("turn right, target", this->targetAngle);
     } else if (line == "e") { //rotate left by 45 degrees
-      this->setState(ROTATE_STATE);
-      this->targetAngle = gyro.boundedAngle(this->targetAngle + 45);
-      PRINT_VAR("rotate left, target", this->targetAngle);
+      this->setState(SWING_LEFT_STATE);
+      PRINT_VAR("SWING left, target", this->targetAngle);
+
+      // this->setState(ROTATE_STATE);
+      // this->targetAngle = gyro.boundedAngle(this->targetAngle + 45);
+      // PRINT_VAR("rotate left, target", this->targetAngle);
     } else if (line == "r") { //rotate right by 45 degrees
-      this->setState(ROTATE_STATE);
-      this->targetAngle = gyro.boundedAngle(this->targetAngle - 45);
-      PRINT_VAR("rotate right, target", this->targetAngle);
+      this->setState(SWING_RIGHT_STATE);
+      PRINT_VAR("SWING right, target", this->targetAngle);
+
+      // this->setState(ROTATE_STATE);
+      // this->targetAngle = gyro.boundedAngle(this->targetAngle - 45);
+      // PRINT_VAR("rotate right, target", this->targetAngle);
     } else if (line == "p") { //pause the program and stop the car
       Serial.println("paused");
       this->setState(PAUSED_STATE);
@@ -215,6 +225,16 @@ void Car::setState(int newState) {
     case ROTATE_STATE:
     this->motor.setSpeedTo(MIN_MOVING_SPEED, RIGHT);
     this->motor.setSpeedTo(MIN_MOVING_SPEED, LEFT);
+    break;
+    case SWING_LEFT_STATE:
+    this->motor.forward();
+    this->motor.setSpeedTo(0, LEFT);
+    this->motor.setSpeedTo(170, RIGHT);
+    break;
+    case SWING_RIGHT_STATE:
+    this->motor.forward();
+    this->motor.setSpeedTo(0, RIGHT);
+    this->motor.setSpeedTo(170, LEFT);
     break;
     default:
     //do nothing
