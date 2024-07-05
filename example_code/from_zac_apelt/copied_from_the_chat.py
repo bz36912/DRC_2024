@@ -13,7 +13,7 @@ import numpy as np
 # matrix = cv2.getPerspectiveTransform(pts1, pts2)
 # print(repr(matrix))
 
-pts1 = np.float32([[131,212],[86,136],[363,115],[504,155]]) #pixels
-pts2 = np.float32([[0,30],[0,50],[30,50],[30,30]]) #cm
+pts1 = np.float32([[165,179],[136,135],[298,122],[385,152]]) #pixels
+pts2 = np.float32([[0,40],[0,60],[20,60],[20,40]]) #cm
 matrix = cv2.getPerspectiveTransform(pts1, pts2)
 print(repr(matrix))
