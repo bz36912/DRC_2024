@@ -155,7 +155,7 @@ void Car::parse_cmd_string(String cmdStr) {
   }
   if (maxPWM != NULL) {
     this->maxPWM = min(atoi(maxPWM), MAX_SPEED);
-    this->maxPWM = max(this->maxPWM, MIN_SPEED);
+    this->maxPWM = max(this->maxPWM, MIN_MOVING_SPEED);
   }
 }
 
@@ -176,11 +176,13 @@ void Car::getCommand() {
       Serial.print("#\n");
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "w") { // accelerate
+      this->targetAngle = this->gyro.getAngle();
       this->maxPWM = min(MAX_SPEED, this->maxPWM + 20);
       PRINT_VAR("ACcelerate, new maxPWM", this->maxPWM);
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "s") { // decelerate
-      this->maxPWM = max(MIN_SPEED, this->maxPWM - 20);
+      this->targetAngle = this->gyro.getAngle();
+      this->maxPWM = max(MIN_MOVING_SPEED, this->maxPWM - 20);
       PRINT_VAR("DEcelerate, new maxPWM", this->maxPWM);
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "a") { // turn left
@@ -229,12 +231,12 @@ void Car::setState(int newState) {
     case SWING_LEFT_STATE:
     this->motor.forward();
     this->motor.setSpeedTo(0, LEFT);
-    this->motor.setSpeedTo(170, RIGHT);
+    this->motor.setSpeedTo(this->maxPWM, RIGHT);
     break;
     case SWING_RIGHT_STATE:
     this->motor.forward();
     this->motor.setSpeedTo(0, RIGHT);
-    this->motor.setSpeedTo(170, LEFT);
+    this->motor.setSpeedTo(this->maxPWM, LEFT);
     break;
     default:
     //do nothing

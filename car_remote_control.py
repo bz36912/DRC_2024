@@ -35,7 +35,12 @@ class Uart():
                 oldKey = key
                 self.enableSelfDriving = False
                 lastKeyPressTime = time.time()
-                key_in_bytes = bytes(key + "\n", 'utf-8')
+                if key == 'a':
+                    key_in_bytes = bytes("/ 80\n", 'utf-8')
+                elif key == 'd':
+                    key_in_bytes = bytes("/ -80\n", 'utf-8')
+                else:
+                    key_in_bytes = bytes(key + "\n", 'utf-8')
                 print(key_in_bytes, type(key_in_bytes))
                 self.ser.write(key_in_bytes)
 
@@ -46,12 +51,6 @@ class Uart():
             time.sleep(0.45)
             num_missed_ACK += 1
 
-            # for i in range(50):
-            #     line = self.ser.readline().decode().strip("\n\r")
-            #     if line == "":
-            #         break
-            #     else:
-            #         print(line)
 
             lines = self.ser.readlines()
             for line in lines:
@@ -76,8 +75,8 @@ class Uart():
 if __name__ == "__main__":
     print("start of program")
     # port = "/dev/tty.REMOTE_CTRL"
-    port = "/dev/tty.HC-05"
-    # port = "COM10"
+    # port = "/dev/tty.HC-05"
+    port = "COM16"
     uart = Uart(port)
 
     # testing uart
