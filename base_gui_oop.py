@@ -26,6 +26,7 @@ from car_remote_control import Uart
 from path_planner_1 import dummy_path_planner
 from path_planner_2 import simple_diff_path_planner
 from path_planner_3 import weight_average_path_planner, proximity_path_planner
+from path_planner_4 import better_path_planner
 from colour_mask_indoor import colour_mask, get_contour
 # from example_code.ex_colour_mask import get_contour
 from obstacle_avoid import colour_change
@@ -181,8 +182,9 @@ class Gui():
                 blueTrans, yellowTrans, flag = colour_change(blueTrans, yellowTrans, purpleTrans)
             
             # direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
-            direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
+            # direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
             # direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
+            direction, speed = better_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
             if self.uart is not None:
                 if speed > 0:
                     self.uart.send_command(direction, speed)
