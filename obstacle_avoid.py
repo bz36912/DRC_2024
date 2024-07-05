@@ -21,7 +21,7 @@ def colour_change(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.n
     
     if rightBlue.size > 0 and dist_purple_blue < TOO_CLOSE_DIST: # go left, purple points get treated as blue points
         newBlue = np.concatenate((rightBlue, newPurple), axis=0)
-        return newBlue, leftYellow
+        return newBlue, leftYellow, True
     else: # go right, purple points get treated as yellow points
         newYellow = np.concatenate((leftYellow, newPurple), axis=0)
-        return rightBlue, newYellow
+        return rightBlue, newYellow, False
