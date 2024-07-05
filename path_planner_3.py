@@ -48,8 +48,9 @@ def weight_average_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, pu
     speed = 130
     return angle, speed
 
-MIDDLE_WEIGHT = 20 # max weight applied to -30 < x < 30cm
+MIDDLE_WEIGHT = 5 # max weight applied to -30 < x < 30cm
 DECAY_CONSTANT = 0.7
+SCALE = 0.5
 def proximity_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray):
     rightBlue, leftYellow = _region_of_interest(blueTrans, yellowTrans, purpleTrans)
 
@@ -63,7 +64,7 @@ def proximity_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleT
         weights[x < OPTIMAL_SIDE_DISTANCE] = MIDDLE_WEIGHT
         weights = weights * 2.71828**(-DECAY_CONSTANT * (x**2 + y**2) / 100**2)
         error = OPTIMAL_SIDE_DISTANCE - x
-        angle = np.mean(weights * error)
+        angle = SCALE * np.mean(weights * error)
     else: # follow the yellow line
         x = leftYellow[::,0]
         y = leftYellow[::,1]
@@ -71,7 +72,7 @@ def proximity_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleT
         weights[x > -OPTIMAL_SIDE_DISTANCE] = MIDDLE_WEIGHT
         weights = weights * 2.71828**(-DECAY_CONSTANT * (x**2 + y**2) / 100**2)
         error = -OPTIMAL_SIDE_DISTANCE - x
-        angle = np.mean(weights * error)
+        angle = SCALE * np.mean(weights * error)
 
     angle = min(80, max(-80, angle))
     speed = 130

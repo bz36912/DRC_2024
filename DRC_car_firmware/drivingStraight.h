@@ -14,6 +14,8 @@
 #define ROTATE_STATE 0
 #define DRIVE_FORWARD_STATE 1
 #define PAUSED_STATE 2
+#define SWING_LEFT_STATE 3
+#define SWING_RIGHT_STATE 4
 
 /**
  * @brief in degrees, turning angle above which the car will go from DRIVE_FORWARD_STATE into 
