@@ -28,13 +28,14 @@ from path_planner_2 import simple_diff_path_planner
 from path_planner_3 import weight_average_path_planner, proximity_path_planner
 from colour_mask_indoor import colour_mask, get_contour
 # from example_code.ex_colour_mask import get_contour
+from obstacle_avoid import colour_change
 from example_code.ex_perspective_transform import perspective_tansform
 from queue import Queue
 
 class Gui():
     # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
     # ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
-    ADDRESS = "https://192.168.80.91:8080//video"
+    ADDRESS = "https://192.168.65.91:8080//video"
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
     PLOT_GRAPH_EVERY_N_CYCLE = 20
@@ -61,8 +62,9 @@ class Gui():
         self.uart = None
         if startVideo:
             try:
-                self.uart = Uart("COM4")
+                # self.uart = Uart("COM4")
                 # self.uart = Uart("/dev/tty.REMOTE_CTRL")
+                self.uart = Uart("/dev/tty.HC-05")
                 self.display_uart_connection(True)
             except:
                 self.display_uart_connection(False)
@@ -122,7 +124,7 @@ class Gui():
         videoLabel.configure(image=imgtk)
         videoLabel.imgtk = imgtk
 
-    def update_plot(self, blueTrans, yellowTrans, purpleTrans, direction, speed):
+    def update_plot(self, blueTrans, yellowTrans, purpleTrans, direction, speed, flag=None):
         # plot the location of track and obstacles
         self.blue.set_data(blueTrans[::, 0], blueTrans[::, 1])
         self.yellow.set_data(yellowTrans[::, 0], yellowTrans[::, 1])
@@ -133,7 +135,12 @@ class Gui():
         arrow_length = max_arrow_length * (speed / 5)  # Scale arrow length based on speed
         dis_direction = direction + 90 # for the path planner, 0 is up. But the graph has 0 pointing to the right.
         self.arrow.set_data(dx=arrow_length * np.cos(np.radians(dis_direction)), dy=arrow_length * np.sin(np.radians(dis_direction)))
-        self.text.set_text(f"Speed: {speed} @ {direction} deg")
+        if flag is None:
+            self.text.set_text(f"Speed: {speed} @ {round(direction, 1)} deg")
+        elif flag is True:
+            self.text.set_text(f"Speed: {speed} @ {round(direction, 1)} deg, purple is blue")
+        else:
+            self.text.set_text(f"Speed: {speed} @ {round(direction, 1)} deg, purple is yellow")
 
         # Draw the new plot
         self.canvas.draw()
@@ -169,10 +176,13 @@ class Gui():
             blueTrans = perspective_tansform(blueContour.transpose())
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
-
+            flag = None
+            if purpleTrans.size > 0:
+                blueTrans, yellowTrans, flag = colour_change(blueTrans, yellowTrans, purpleTrans)
+            
             # direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
             direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
-            #direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
+            # direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
             if self.uart is not None:
                 if speed > 0:
                     self.uart.send_command(direction, speed)
@@ -181,7 +191,7 @@ class Gui():
                     exit() # end the thread
             if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
                 # plot bird's eye view
-                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed)
+                self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed, flag)
             cycle += 1
 
     def close_threads(self):
