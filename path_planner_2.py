@@ -23,7 +23,6 @@ def simple_diff_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpl
     
     else: # follow the yellow
         yellowMiddle = leftYellow[leftYellow[::,0] > -40]
-        x = leftYellow[::,0]
         angle = -yellowMiddle.size
 
     angle = min(80, max(-80, angle/5))
@@ -31,11 +30,6 @@ def simple_diff_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpl
         speed = 110
     elif (abs(angle) > 60):
         speed = -10
-        angle = 0
-        if (angle > 0):
-            uart.swing_left()
-        else: 
-            uart.swing_right()
     else: 
         speed = 130
     return angle, speed
