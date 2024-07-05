@@ -176,6 +176,11 @@ class Gui():
             blueTrans = perspective_tansform(blueContour.transpose())
             yellowTrans = perspective_tansform(yellowContour.transpose())
             purpleTrans = perspective_tansform(purpleContour.transpose())
+
+            purpleTrans = purpleTrans[purpleTrans[::,1] < 120]
+            purpleTrans = purpleTrans[purpleTrans[::,1] > 0]
+            purpleTrans = purpleTrans[purpleTrans[::,0] < 150]
+            purpleTrans = purpleTrans[purpleTrans[::,0] > -150]
             flag = None
             if purpleTrans.size > 0:
                 blueTrans, yellowTrans, flag = colour_change(blueTrans, yellowTrans, purpleTrans)

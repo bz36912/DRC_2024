@@ -1,5 +1,5 @@
 import numpy as np
-TOO_CLOSE_DIST = 20 # cm
+TOO_CLOSE_DIST = 40 # cm
 PURPLE_CUTOFF = 3
 
 def colour_change(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray):
