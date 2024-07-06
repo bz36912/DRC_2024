@@ -6,6 +6,7 @@ MAX_Y = 120
 TOO_BIG = 50
 FRONT_CLIP = 10
 FRONT_DIST = 50
+BLIND_SPOT = 20
 SHORT = 60
 MARGIN = 5
 A = 1
@@ -30,6 +31,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     
     front = followLine[abs(followLine[::,1]) < FRONT_CLIP]
     if front.size < 5:
+        speed = 101
         x = followLine[::,0]
         inner = followLine[(direct*(followLine[::,0]))<OPT_DIST-MARGIN]
         inner = inner[((inner[::,1]))<SHORT]
@@ -37,31 +39,36 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
         outer = outer[((outer[::,1]))<SHORT]
         if inner.size > 5 or outer.size > 5:
             if inner.size == 0:
-                inmean = OPT_DIST
+                inxmean = OPT_DIST*direct
+                inymean = BLIND_SPOT
             else:
-                inmean = np.mean(inner)
+                inxmean = np.mean(inner[::,0])
+                inymean = np.mean(inner[::,1])
             if outer.size == 0:
-                outmean = OPT_DIST
+                outxmean = OPT_DIST*direct
+                outymean = BLIND_SPOT
             else:
-                outmean = np.mean(outer)
-            angle = (outmean - inmean)*B*direct
+                outxmean = np.mean(outer[::,0])
+                outymean = np.mean(outer[::,1])
+            angle = -1*np.rad2deg(np.arctan([(outymean-inymean)/(outxmean-inxmean)])[0])
         else: 
             angle = 0
     else: 
+        speed = 110
         angle = A*FRONT_DIST/np.mean(front[::,1]) * direct
 
     angle = min(80, max(-80, angle))
-    if (abs(angle)<10):
-        speed = 110
-    elif (abs(angle) > 60):
+    #if (abs(angle)<10):
+        #speed = 110
+    if (abs(angle) > 60):
         speed = -10
         if uart is not None:
             if angle < 0:
                 uart.swing_left()
             else:   
                 uart.swing_right()
-    else: 
-        speed = 130
+    #else: 
+    #    speed = 130
     return angle, speed
 
 
