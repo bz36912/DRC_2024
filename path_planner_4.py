@@ -30,6 +30,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
         direct = -1
     
     front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
+    front = front[front[::,1] < FRONT_DIST]
     if front.size < 5:
         speed = 101
         x = followLine[::,0]
