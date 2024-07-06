@@ -5,6 +5,7 @@ MAX_X = 100
 MAX_Y = 120
 TOO_BIG = 50
 FRONT_CLIP = 10
+FRONT_STOP = 20
 FRONT_DIST = 65
 FRONT_DIVID = 60
 BLIND_SPOT = 10
@@ -57,7 +58,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
             angle = 0
     else: 
         speed = 104
-        angle = A*FRONT_DIVID/np.mean(front[::,1]) * direct
+        angle = A*FRONT_DIVID/(np.mean(front[::,1])-FRONT_STOP) * direct
 
     angle = min(80, max(-80, angle))
     #if (abs(angle)<10):
