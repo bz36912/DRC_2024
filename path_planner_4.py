@@ -1,16 +1,16 @@
 import numpy as np
 from car_remote_control import Uart
-OPT_DIST = 45 # cm
+OPT_DIST = 35 # cm
 MAX_X = 100
 MAX_Y = 120
 TOO_BIG = 50
 FRONT_CLIP = 10
-FRONT_DIST = 50
-BLIND_SPOT = 20
+FRONT_DIST = 60
+BLIND_SPOT = 10
 SHORT = 60
 MARGIN = 5
-A = 30
-B = 1
+A = 40
+B = 0.7
 
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
     rightBlue = blueTrans[blueTrans[::,0] < MAX_X]
@@ -21,7 +21,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     leftYellow = leftYellow[leftYellow[::,1] > 0]
 
     if rightBlue.size == 0 and leftYellow.size == 0: # no data
-        return 0, 130
+        return -5, 105
     if rightBlue.size > leftYellow.size:
         followLine = rightBlue
         direct = 1
@@ -32,7 +32,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
     front = front[front[::,1] < FRONT_DIST]
     if front.size < 5:
-        speed = 101
+        speed = 105
         x = followLine[::,0]
         inner = followLine[(direct*(followLine[::,0]))<OPT_DIST-MARGIN]
         inner = inner[((inner[::,1]))<SHORT]
@@ -51,23 +51,26 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
             else:
                 outxmean = np.mean(outer[::,0])
                 outymean = np.mean(outer[::,1])
-            angle = -1 * np.rad2deg(np.arctan([(outxmean-inxmean)/(outymean-inymean)])[0])
+            angle = -B * np.rad2deg(np.arctan([(outxmean-inxmean)/(outymean-inymean)])[0])
         else: 
             angle = 0
     else: 
-        speed = 110
+        speed = 105
         angle = A*FRONT_DIST/np.mean(front[::,1]) * direct
 
     angle = min(80, max(-80, angle))
     #if (abs(angle)<10):
         #speed = 110
-    if (abs(angle) > 60):
-        # speed = -10
+
+    if (abs(angle) > 70):
+        speed = -10
         if uart is not None:
-            if angle < 0:
+            uart.send_command(0, 90)
+            if angle > 0:
                 uart.swing_left()
             else:   
                 uart.swing_right()
+
     #else: 
     #    speed = 130
     return angle, speed
