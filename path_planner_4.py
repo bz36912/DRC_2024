@@ -1,6 +1,6 @@
 import numpy as np
 from car_remote_control import Uart
-OPT_DIST = 30 # cm
+OPT_DIST = 45 # cm
 MAX_X = 100
 MAX_Y = 120
 TOO_BIG = 50
@@ -9,7 +9,7 @@ FRONT_DIST = 50
 BLIND_SPOT = 20
 SHORT = 60
 MARGIN = 5
-A = 1
+A = 30
 B = 1
 
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
@@ -29,7 +29,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
         followLine = leftYellow
         direct = -1
     
-    front = followLine[abs(followLine[::,1]) < FRONT_CLIP]
+    front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
     if front.size < 5:
         speed = 101
         x = followLine[::,0]
