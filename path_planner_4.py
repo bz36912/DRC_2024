@@ -5,11 +5,12 @@ MAX_X = 100
 MAX_Y = 120
 TOO_BIG = 50
 FRONT_CLIP = 10
-FRONT_DIST = 60
+FRONT_DIST = 65
+FRONT_DIVID = 60
 BLIND_SPOT = 10
 SHORT = 60
 MARGIN = 5
-A = 40
+A = 45
 B = 0.7
 
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
@@ -32,7 +33,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
     front = front[front[::,1] < FRONT_DIST]
     if front.size < 5:
-        speed = 105
+        speed = 106
         x = followLine[::,0]
         inner = followLine[(direct*(followLine[::,0]))<OPT_DIST-MARGIN]
         inner = inner[((inner[::,1]))<SHORT]
@@ -55,8 +56,8 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
         else: 
             angle = 0
     else: 
-        speed = 105
-        angle = A*FRONT_DIST/np.mean(front[::,1]) * direct
+        speed = 104
+        angle = A*FRONT_DIVID/np.mean(front[::,1]) * direct
 
     angle = min(80, max(-80, angle))
     #if (abs(angle)<10):
