@@ -51,7 +51,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
             else:
                 outxmean = np.mean(outer[::,0])
                 outymean = np.mean(outer[::,1])
-            angle = -1*np.rad2deg(np.arctan([(outymean-inymean)/(outxmean-inxmean)])[0])
+            angle = -1 * np.rad2deg(np.arctan([(outxmean-inxmean)/(outymean-inymean)])[0])
         else: 
             angle = 0
     else: 
@@ -62,7 +62,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     #if (abs(angle)<10):
         #speed = 110
     if (abs(angle) > 60):
-        speed = -10
+        # speed = -10
         if uart is not None:
             if angle < 0:
                 uart.swing_left()
