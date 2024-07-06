@@ -5,7 +5,7 @@
 
 #define MAX_SPEED 255 //max PWM value written to motor speed pin. It is typically 255.
 #define MIN_SPEED 35 //min PWM value written to motor speed pin
-#define MIN_MOVING_SPEED 95 //min PWM value at which motor moves
+#define MIN_MOVING_SPEED 110 //min PWM value at which motor moves
 #define EQUILIBRIUM_SPEED 248
 #define LEFT false
 #define RIGHT true
