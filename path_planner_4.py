@@ -14,6 +14,8 @@ MARGIN = 5
 A = 45
 B = 0.7
 
+BASE_SPEED = 110
+
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
     rightBlue = blueTrans[blueTrans[::,0] < MAX_X]
     rightBlue = rightBlue[rightBlue[::,1] < MAX_Y]
@@ -34,7 +36,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
     front = front[front[::,1] < FRONT_DIST]
     if front.size < 5:
-        speed = 106
+        speed = BASE_SPEED + 1
         x = followLine[::,0]
         inner = followLine[(direct*(followLine[::,0]))<OPT_DIST-MARGIN]
         inner = inner[((inner[::,1]))<SHORT]
@@ -57,7 +59,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
         else: 
             angle = 0
     else: 
-        speed = 104
+        speed = BASE_SPEED + 2
         angle = A*FRONT_DIVID/(np.mean(front[::,1])-FRONT_STOP) * direct
 
     angle = min(80, max(-80, angle))
@@ -65,9 +67,9 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
         #speed = 110
 
     if (abs(angle) > 70):
-        speed = -10
+        speed = -20
         if uart is not None:
-            uart.send_command(0, 90)
+            uart.send_command(0, BASE_SPEED)
             if angle > 0:
                 uart.swing_left()
             else:   

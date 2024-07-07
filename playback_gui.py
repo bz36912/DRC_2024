@@ -9,11 +9,14 @@ from tkVideoPlayer import TkinterVideo
 from base_gui_oop import Gui
 
 class PlaybackGui(Gui):
-    # FILEPATH = 'example_code/car_view_test1.mp4' # Replace with the video address
-    FILEPATH = 'dash_cam/remote_GP_3.mp4'
+    # FILEPATH = 'example_code/QUT_init_data_reduced.mp4' # Replace with the video address
+    # FILEPATH = 'dash_cam/05_Jul_24_11_26_33.mp4'
+    # FILEPATH = 'dash_cam/obstacle_moved_by_hand.mp4'
+    FILEPATH = 'dash_cam/ob_2.mp4'
     # IMPORTANT: this class will scale the video resolution to 640X360, to reduce lag and the GUI screen fits,
     # using self.vid_player.bind() in self.play_pause()
     PLOT_GRAPH_EVERY_N_CYCLE = 1
+    DISPLAY_VIDEO = True
     def __init__(self) -> None:
         self.vid_player = None # self.play_pause() also helps to initialise the video GUI element
         super().__init__(startVideo=False) # run tk.Tk.mainloop(), so this function blocks

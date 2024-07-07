@@ -155,7 +155,7 @@ void Car::parse_cmd_string(String cmdStr) {
   }
   if (maxPWM != NULL) {
     this->maxPWM = min(atoi(maxPWM), MAX_SPEED);
-    this->maxPWM = max(this->maxPWM, MIN_MOVING_SPEED);
+    this->maxPWM = max(this->maxPWM, MIN_SPEED);
   }
 }
 
@@ -182,7 +182,7 @@ void Car::getCommand() {
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "s") { // decelerate
       this->targetAngle = this->gyro.getAngle();
-      this->maxPWM = max(MIN_MOVING_SPEED, this->maxPWM - 20);
+      this->maxPWM = max(MIN_SPEED, this->maxPWM - 20);
       PRINT_VAR("DEcelerate, new maxPWM", this->maxPWM);
       this->setState(DRIVE_FORWARD_STATE);
     } else if (line == "a") { // turn left
@@ -224,10 +224,10 @@ void Car::setState(int newState) {
     //my right motor is weaker than the left motor, so I set right motor to max speed
     this->motor.setSpeedTo(EQUILIBRIUM_SPEED, LEFT);
     break;
-    case ROTATE_STATE:
-    this->motor.setSpeedTo(MIN_MOVING_SPEED, RIGHT);
-    this->motor.setSpeedTo(MIN_MOVING_SPEED, LEFT);
-    break;
+    // case ROTATE_STATE:
+    // this->motor.setSpeedTo(MIN_MOVING_SPEED, RIGHT);
+    // this->motor.setSpeedTo(MIN_MOVING_SPEED, LEFT);
+    // break;
     case SWING_LEFT_STATE:
     this->motor.forward();
     this->motor.setSpeedTo(0, LEFT);
@@ -271,6 +271,10 @@ String Car::state_string_helper(int state) {
     return "DRIVE_FORWARD_STATE";
     case PAUSED_STATE:
     return "PAUSED_STATE";
+    case SWING_LEFT_STATE:
+    return "SWING_LEFT_STATE";
+    case SWING_RIGHT_STATE:
+    return "SWING_RIGHT_STATE";
   }
   return "unknown";
 }

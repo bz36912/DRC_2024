@@ -72,11 +72,19 @@ class Uart():
             # print("comman sent: /", direction, maxPWM)
             self.ser.write(bytes(f"/ {direction} {maxPWM}\n", 'utf-8'))
 
+    def swing_left(self):
+        if self.enableSelfDriving:
+            self.ser.write(bytes(f"e\n", 'utf-8'))
+
+    def swing_right(self):
+        if self.enableSelfDriving:
+            self.ser.write(bytes(f"r\n", 'utf-8'))
+
 if __name__ == "__main__":
     print("start of program")
     # port = "/dev/tty.REMOTE_CTRL"
-    # port = "/dev/tty.HC-05"
-    port = "COM16"
+    port = "/dev/tty.HC-05"
+    # port = "COM16"
     uart = Uart(port)
 
     # testing uart

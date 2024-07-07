@@ -36,10 +36,11 @@ from queue import Queue
 class Gui():
     # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
     # ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
-    ADDRESS = "https://192.168.65.91:8080//video"
+    ADDRESS = "https://192.168.181.91:8080//video"
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
     PLOT_GRAPH_EVERY_N_CYCLE = 20
+    DISPLAY_VIDEO = False
     def __init__(self, startVideo=True) -> None:
         """Starts the GUI
 
@@ -120,10 +121,11 @@ class Gui():
         return frame
     
     def display_video_frame(self, frame, videoLabel):
-        img = Image.fromarray(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
-        imgtk = ImageTk.PhotoImage(image=img)
-        videoLabel.configure(image=imgtk)
-        videoLabel.imgtk = imgtk
+        if self.DISPLAY_VIDEO:
+            img = Image.fromarray(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
+            imgtk = ImageTk.PhotoImage(image=img)
+            videoLabel.configure(image=imgtk)
+            videoLabel.imgtk = imgtk
 
     def update_plot(self, blueTrans, yellowTrans, purpleTrans, direction, speed, flag=None):
         # plot the location of track and obstacles
