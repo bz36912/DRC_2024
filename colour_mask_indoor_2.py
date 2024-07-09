@@ -39,7 +39,7 @@ def colour_mask(frame):
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     #lower bound and upper bound for blue
-    lowerBlue = np.array([50, 10, 180])
+    lowerBlue = np.array([50, 20, 180])
     upperBlue = np.array([130, 255, 255])
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
@@ -301,7 +301,7 @@ if __name__ == "__main__":
     # cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
     # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
     # cap = cv.VideoCapture('example_code\AEB_data2.mp4')
-    cap = cv.VideoCapture('dash_cam/test_day_1.mp4')
+    cap = cv.VideoCapture('dash_cam/test_day_track1_1.mp4')
     init_camera_feed(cap)
 
     delay = 15
