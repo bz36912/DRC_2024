@@ -81,8 +81,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
 
     #else: 
     #    speed = 130
-    print(direct)
-    print(angle)
+
     return angle, speed
 
 
