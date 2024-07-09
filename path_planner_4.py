@@ -5,19 +5,19 @@ OPT_DIST = 35 # cm
 #MAX_X maximun x distance to consider in frame
 MAX_X = 100
 #MAX_Y maximun y distance to consider in frame 
-MAX_Y = 100
+MAX_Y = 75
 #FRONT_CLIP  domain off centre to consider points "in front" of the robot
 FRONT_CLIP = 10
 #FRONT_STOP value to increase reaction time by increasing precieved closeness to the line 
 FRONT_STOP = 30
 #FRONT_DIST Maximun distance it can react to as a line infront of the robot
-FRONT_DIST = 70
+# FRONT_DIST = 70
 #FRONT_DIVID
-FRONT_DIVID = 60
+FRONT_DIVID = 65
 #BLIND_SPOT minimun distance in fornt it can see, used as placeholder when too far from the line 
 BLIND_SPOT = 15
 #SHORT ?
-SHORT = 60
+# SHORT = 60
 #MARGIN margin of error within keping the line at a distance 
 MARGIN = 5
 #A multiplier of the front adjustment angle 
@@ -55,7 +55,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     
     #clips line array to only points in front of the robot 
     front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
-    front = front[front[::,1] < FRONT_DIST]
+    # front = front[front[::,1] < FRONT_DIST]
     # if points in front of robot do front angle turning else default to line following 
     if front.size < 5:
         speed = baseSpeed + 1
@@ -97,6 +97,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
 
     # if angle is too high stops driving forward and trys to turn on the spot
     if (abs(angle) > 70):
+        #negative speed to indicate tank turning 
         speed = -20
         if uart is not None:
             uart.send_command(0, baseSpeed)
