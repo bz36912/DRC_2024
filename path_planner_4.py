@@ -63,7 +63,8 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
             angle = 0
     else: 
         speed = baseSpeed + 2
-        angle = A*FRONT_DIVID/(np.mean(front[::,1])-FRONT_STOP) * direct
+        dist = max(np.mean(front[::,1])-FRONT_STOP, 0.1)
+        angle = A*FRONT_DIVID/(dist) * direct
 
     angle = min(80, max(-80, angle))
     #if (abs(angle)<10):
@@ -80,6 +81,8 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
 
     #else: 
     #    speed = 130
+    print(direct)
+    print(angle)
     return angle, speed
 
 
