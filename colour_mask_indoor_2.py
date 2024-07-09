@@ -44,8 +44,8 @@ def colour_mask(frame):
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 
     # lower bound and upper bound for yellow
-    lowerYellow = np.array([20, 5, 200])
-    upperYellow = np.array([60, 255, 255])
+    lowerYellow = np.array([20, 25, 200])
+    upperYellow = np.array([60, 255, 235])
     yellowMask = cv.inRange(hsv, lowerYellow, upperYellow)   #getting a yellow mask     
     
     #lower bound and upper bound for purple color
