@@ -9,13 +9,13 @@ MAX_Y = 75
 #FRONT_CLIP  domain off centre to consider points "in front" of the robot
 FRONT_CLIP = 10
 #FRONT_STOP value to increase reaction time by increasing precieved closeness to the line 
-FRONT_STOP = 30
+FRONT_STOP = 25
 #FRONT_DIST Maximun distance it can react to as a line infront of the robot
 # FRONT_DIST = 70
 #FRONT_DIVID
 FRONT_DIVID = 65
 #BLIND_SPOT minimun distance in fornt it can see, used as placeholder when too far from the line 
-BLIND_SPOT = 15
+BLIND_SPOT = 20
 #SHORT ?
 # SHORT = 60
 #MARGIN margin of error within keping the line at a distance 
@@ -23,12 +23,18 @@ MARGIN = 5
 #A multiplier of the front adjustment angle 
 A = 45
 #B multiplier for the line following agressivness
-B = 0.9
+B = 0.8
 
 # BASE_SPEED_YELLOW base speed for following yellow line 
-BASE_SPEED_YELLOW = 110
-# BASE_SPEED_BLUE base speed of blue line following 
-BASE_SPEED_BLUE = 200
+BASE_SPEED_YELLOW = 130
+# BASE_SPEED_BLUE base qspeed of blue line following 
+BASE_SPEED_BLUE = 210
+
+# def get_blue_speed(angle):
+#     BASE_SPEED_BLUE + max(30 - angle)
+
+# def get_yellow_speed(angle):
+#     pass
 
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
     # filtering data for only value within max_x and max_y and in front fo robot
