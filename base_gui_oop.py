@@ -27,7 +27,7 @@ from path_planner_1 import dummy_path_planner
 from path_planner_2 import simple_diff_path_planner
 from path_planner_3 import weight_average_path_planner, proximity_path_planner
 from path_planner_4 import better_path_planner
-from colour_mask_indoor import colour_mask, get_contour
+from colour_mask_indoor_2 import colour_mask, get_contour
 # from example_code.ex_colour_mask import get_contour
 from obstacle_avoid import colour_change
 from example_code.ex_perspective_transform import perspective_tansform
@@ -35,8 +35,8 @@ from queue import Queue
 
 class Gui():
     # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
-    # ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
-    ADDRESS = "https://192.168.181.91:8080//video"
+    ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
+    #ADDRESS = "https://192.168.163.91:8080//video"
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
     PLOT_GRAPH_EVERY_N_CYCLE = 20
