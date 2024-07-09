@@ -300,7 +300,7 @@ if __name__ == "__main__":
     # cap = cv.VideoCapture('example_code\QUT_init_data_reduced.mp4')
     # cap = cv.VideoCapture('example_code\car_view_test1.mp4')
     # cap = cv.VideoCapture('example_code\AEB_data2.mp4')
-    cap = cv.VideoCapture('example_code/2023_video_1.mp4')
+    cap = cv.VideoCapture('dash_cam/test_day_1.mp4')
     init_camera_feed(cap)
 
     while True:
