@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from path_planner_4 import FRONT_DIST
+from path_planner_4 import MAX_Y
 
 TOO_CLOSE_DIST = 40 # cm
 PURPLE_CUTOFF = 3
@@ -25,7 +25,7 @@ def colour_change(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.n
     ### decision based on multiple frames using the memory global variable
     global memory
 
-    nearBlue = rightBlue[rightBlue[::,1] < FRONT_DIST] # imported from path_planner_4
+    nearBlue = rightBlue[rightBlue[::,1] < MAX_Y] # imported from path_planner_4
     if nearBlue.size > 0:
         distances = np.linalg.norm(nearBlue - purple_highest_x, axis = 1)
         dist_purple_blue = np.min(distances)
@@ -39,7 +39,7 @@ def colour_change(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.n
             newYellow = np.concatenate((leftYellow, purpleTrans), axis=0)
             return rightBlue, newYellow, False
     else: # no enough data in current frame
-        if time.time() - memory[1] > 1: # remember for 1 sec
+        if time.time() - memory[1] > 2: # remember for 1 sec
             if memory[0] is not None:
                 print("colour_change(): end of remembering state", memory[0])
             memory[0] = None

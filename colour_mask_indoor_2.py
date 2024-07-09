@@ -39,7 +39,7 @@ def colour_mask(frame):
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     #lower bound and upper bound for blue
-    lowerBlue = np.array([50, 20, 180])
+    lowerBlue = np.array([50, 40, 180])
     upperBlue = np.array([130, 255, 255])
     blueMask = cv.inRange(hsv, lowerBlue, upperBlue)
 

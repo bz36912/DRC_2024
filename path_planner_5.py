@@ -28,13 +28,15 @@ B = 0.8
 # BASE_SPEED_YELLOW base speed for following yellow line 
 BASE_SPEED_YELLOW = 130
 # BASE_SPEED_BLUE base qspeed of blue line following 
-BASE_SPEED_BLUE = 220
+BASE_SPEED_BLUE = 210
 
-# def get_blue_speed(angle):
-#     BASE_SPEED_BLUE + max(30 - angle)
+def get_blue_speed(angle):
+    speed = BASE_SPEED_BLUE + max(30 - abs(angle), 0) * 2
+    return min(255, speed)
 
-# def get_yellow_speed(angle):
-#     pass
+def get_yellow_speed(angle):
+    speed = BASE_SPEED_YELLOW + max(30 - abs(angle), 0) * 2
+    return min(255, speed)
 
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
     # filtering data for only value within max_x and max_y and in front fo robot
@@ -49,22 +51,22 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     # yellow line as backup 
     # if no no line slowly turn to the right to try and see blue line 
     if rightBlue.size == 0 and leftYellow.size == 0: # no data
-        return -5, BASE_SPEED_YELLOW
+        return -5, get_yellow_speed(60)
     if (rightBlue.size > leftYellow.size):
         followLine = rightBlue
         direct = 1
-        baseSpeed = BASE_SPEED_BLUE
+        # baseSpeed = BASE_SPEED_BLUE
     else :
         followLine = leftYellow
         direct = -1
-        baseSpeed = BASE_SPEED_YELLOW
+        # baseSpeed = BASE_SPEED_YELLOW
     
     #clips line array to only points in front of the robot 
     front = followLine[abs(followLine[::,0]) < FRONT_CLIP]
     # front = front[front[::,1] < FRONT_DIST]
     # if points in front of robot do front angle turning else default to line following 
     if front.size < 5:
-        speed = baseSpeed + 1
+        # speed = baseSpeed + 1
         x = followLine[::,0]
         #create two line arrays, one inside the optimal distance one outside 
         inner = followLine[(direct*(followLine[::,0]))<OPT_DIST-MARGIN]
@@ -93,7 +95,7 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     else: 
         #front angle turning 
         # increase the angle the closer the line gets inversely 
-        speed = baseSpeed + 2
+        # speed = baseSpeed + 2
         # stops the dist going negative and inverting the direction
         dist = max(np.mean(front[::,1])-FRONT_STOP, 0.1)
         angle = A*FRONT_DIVID/(dist) * direct
@@ -101,22 +103,22 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     # caps angle at 80
     angle = min(80, max(-80, angle))
 
+    if direct<0:
+        basespeed = get_yellow_speed(angle)
+    else:
+        basespeed = get_blue_speed(angle)
+
     # if angle is too high stops driving forward and trys to turn on the spot
     if (abs(angle) > 70):
         #negative speed to indicate tank turning 
         speed = -20
         if uart is not None:
-            uart.send_command(0, baseSpeed)
+            uart.send_command(0, 110)
             if angle > 0:
                 uart.swing_left()
             else:   
                 uart.swing_right()
-
+    else:
+        speed = basespeed
 
     return angle, speed
-
-
-
-    
-
-
