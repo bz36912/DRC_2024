@@ -26,9 +26,9 @@ A = 45
 B = 0.9
 
 # BASE_SPEED_YELLOW base speed for following yellow line 
-BASE_SPEED_YELLOW = 95
+BASE_SPEED_YELLOW = 110
 # BASE_SPEED_BLUE base speed of blue line following 
-BASE_SPEED_BLUE = 110
+BASE_SPEED_BLUE = 200
 
 def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTrans:np.ndarray, uart:Uart):
     # filtering data for only value within max_x and max_y and in front fo robot
