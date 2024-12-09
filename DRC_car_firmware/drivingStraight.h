@@ -26,7 +26,7 @@
 
 //proportional control
 #define PROPORTIONAL_COEFFECIENT 1.0
-#define MAX_ANGULAR_VELOCITY 120
+#define MAX_ANGULAR_VELOCITY 240
 #define FEEDBACK_TIME 20 //in ms
 
 //handling an unintentional UART disconnect or fault

@@ -12,7 +12,7 @@ class PlaybackGui(Gui):
     # FILEPATH = 'example_code/QUT_init_data_reduced.mp4' # Replace with the video address
     # FILEPATH = 'dash_cam/05_Jul_24_11_26_33.mp4'
     # FILEPATH = 'dash_cam/obstacle_moved_by_hand.mp4'
-    FILEPATH = 'dash_cam/ob_2.mp4'
+    FILEPATH = 'dash_cam/test_day_track1_1.mp4'
     # IMPORTANT: this class will scale the video resolution to 640X360, to reduce lag and the GUI screen fits,
     # using self.vid_player.bind() in self.play_pause()
     PLOT_GRAPH_EVERY_N_CYCLE = 1

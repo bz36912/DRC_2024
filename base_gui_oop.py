@@ -23,9 +23,6 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrow
 
 from car_remote_control import Uart
-from path_planner_1 import dummy_path_planner
-from path_planner_2 import simple_diff_path_planner
-from path_planner_3 import weight_average_path_planner, proximity_path_planner
 from path_planner_4 import better_path_planner
 from colour_mask_indoor_2 import colour_mask, get_contour
 # from example_code.ex_colour_mask import get_contour
@@ -35,7 +32,7 @@ from queue import Queue
 
 class Gui():
     # ADDRESS = "https://192.168.221.107:8080//video" # Replace with the video address
-    ADDRESS = "https://192.168.80.91:8080//video" # Replace with the video address
+    ADDRESS = "https://192.168.43.1:8080//video" # Replace with the video address
     #ADDRESS = "https://192.168.163.91:8080//video"
     # IMPORTANT: set IP WebCam's resolution to 640X360, to reduce lag and the GUI screen fits.
     RESOLUTION = (360, 640, 3)
@@ -191,6 +188,7 @@ class Gui():
             # direction, speed = dummy_path_planner(blueTrans, yellowTrans, purpleTrans)
             # direction, speed = simple_diff_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
             # direction, speed = proximity_path_planner(blueTrans, yellowTrans, purpleTrans)
+            # direction, speed = better_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
             direction, speed = better_path_planner(blueTrans, yellowTrans, purpleTrans, self.uart)
             if self.uart is not None:
                 if speed > 0:
@@ -200,6 +198,7 @@ class Gui():
                     exit() # end the thread
             if cycle % self.PLOT_GRAPH_EVERY_N_CYCLE == 0:
                 # plot bird's eye view
+                # if self.DISPLAY_VIDEO:
                 self.update_plot(blueTrans, yellowTrans, purpleTrans, direction, speed, flag)
             cycle += 1
 

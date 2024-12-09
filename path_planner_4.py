@@ -26,9 +26,9 @@ A = 45
 B = 0.8
 
 # BASE_SPEED_YELLOW base speed for following yellow line 
-BASE_SPEED_YELLOW = 130
+BASE_SPEED_YELLOW = 200
 # BASE_SPEED_BLUE base qspeed of blue line following 
-BASE_SPEED_BLUE = 220
+BASE_SPEED_BLUE = 200
 
 # def get_blue_speed(angle):
 #     BASE_SPEED_BLUE + max(30 - angle)
@@ -49,8 +49,9 @@ def better_path_planner(blueTrans:np.ndarray, yellowTrans:np.ndarray, purpleTran
     # yellow line as backup 
     # if no no line slowly turn to the right to try and see blue line 
     if rightBlue.size == 0 and leftYellow.size == 0: # no data
-        return -5, BASE_SPEED_YELLOW
+        return -15, BASE_SPEED_YELLOW
     if (rightBlue.size > leftYellow.size):
+    # else:
         followLine = rightBlue
         direct = 1
         baseSpeed = BASE_SPEED_BLUE
